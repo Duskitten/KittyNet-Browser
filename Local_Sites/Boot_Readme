@@ -20,7 +20,8 @@ c_on_color(0,0,0)   c_center  c_color(255,255,255)  KittyNet is a free and open 
 c_on_color(0,0,0)   c_center  c_color(255,255,255)  with the goal of making a whole new internet! c_on_color(0,0,0) c_center
 
 c_on_color(0,0,0)   c_center  c_color(255,255,255)  To start, press the "F1" key to search in the URL Bar! c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  The "F1" key allows for you to view the source of pages! c_on_color(0,0,0) c_center
+c_on_color(0,0,0)   c_center  c_color(255,255,255)  The "F2" key allows for you to view the source of pages! c_on_color(0,0,0) c_center
+c_on_color(0,0,0)   c_center  c_color(255,255,255)  The "F3" key allows for you to view the debug output in the console! c_on_color(0,0,0) c_center
 
 c_on_color(0,0,0)   c_center  c_color(255,255,255)  Use the $ for local files relative to this .py file! c_on_color(0,0,0) c_center
 

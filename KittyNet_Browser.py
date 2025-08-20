@@ -38,32 +38,44 @@ def draw_text(PosX, PosY, Text, ColorOn, ColorText):
 
 ##This is how we draw straight lines, no diagonals
 def draw_line(StartX,StartY,Size, Horizontal, Color, ColorText, Text):
-    for Point in range(Size):
         if Horizontal:
-            draw_text(StartX+Point,StartY,Text,Color,ColorText)
+            Face_String = Text * Size
+            draw_text(StartX,StartY,Face_String,Color,ColorText)
         else:
-            draw_text(StartX,StartY+Point,Text,Color,ColorText)
+            for Point in range(Size):
+                draw_text(StartX,StartY+Point,Text,Color,ColorText)
 
 ##This is how we draw boxes, we can fill them too
 def draw_box(PosX,PosY,SizeX,SizeY, Filled, Color, ColorText, Text):
-    for y in range(SizeY):
-        y = y + PosY
-        for x in range(SizeX):
-            x = x + PosX
 
-            if not Filled:
-                if x == PosX or x == PosX + SizeX - 1:
-                    if y == PosY or y == PosY + SizeY - 1:
-                        draw_line(PosX,y,term.width,True,Color,ColorText,Text)
-                        break
-                    else:
-                        draw_text(x,y,Text,Color,ColorText)
-                    continue
+    for y in range(SizeY):
+        Face_String = ""
+        if y == PosY or y == PosY + SizeY - 1:
+            Face_String = Text * SizeX
+        else:
+            Face_String = Text+(" " * (SizeX-2))+Text
+
+        draw_text(PosX,PosY+y,Face_String,Color,ColorText)
+
+
+
+        #y = y + PosY
+        #for x in range(SizeX):
+            #x = x + PosX
+
+            #if not Filled:
+                #if x == PosX or x == PosX + SizeX - 1:
+                    #if y == PosY or y == PosY + SizeY - 1:
+                        #draw_line(PosX,y,term.width,True,Color,ColorText,Text)
+                        #continue
+                   # else:
+                        #draw_text(x,y,Text,Color,ColorText)
+                        #continue
                 #if y == PosY or y == PosY + SizeY - 1:
                     #draw_text(x,y,Text,Color,ColorText)
                     #continue
-            else:
-                draw_text(x,y,Text,Color,ColorText)
+            #else:
+                #draw_text(x,y,Text,Color,ColorText)
 
 
 def clear_main_screen():
@@ -137,7 +149,7 @@ def reparse_text(text):
                         tokenized.append(False)
 
 
-        elif splittext[token].startswith("\c_"):
+        elif splittext[token].startswith("\\c_"):
             splittext[token] = splittext[token][1:]
             tokenized.append(False)
         else:
@@ -186,8 +198,7 @@ def reparse_text(text):
     current_webpage_formatted.append(text)
 
 def draw_ui():
-    print(term.on_color_rgb(0,0,0)+term.clear())
-    draw_box(0,0,term.width,term.height-1, False,[255,255,255],[0,0,0]," ")
+    draw_box(0,0,term.width,term.height-1, False,[0,0,0],[255,255,255],"█")
     draw_text(2,term.height-2,"| F1:URL Bar | F2:Show Page Source | F3:Hide/Show Console |",[0,0,0],[255,255,255])
     draw_text(3,2,"KittyNet "+ version,[0,0,0],[255,255,255])
     draw_line(0, 4, term.width, True,[255,255,255],[0,0,0]," ")
