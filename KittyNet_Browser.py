@@ -33,6 +33,7 @@ if not os.path.exists("./Websites"):
 
 #This is how we output text with some customizing!
 def draw_text(PosX, PosY, Text, ColorOn, ColorText):
+    #time.sleep(.01)
     print(term.on_color_rgb(ColorOn[0],ColorOn[1],ColorOn[2])+term.color_rgb(ColorText[0],ColorText[1],ColorText[2])+term.move_xy(PosX, PosY) + Text + term.normal)
 
 
@@ -76,12 +77,6 @@ def draw_box(PosX,PosY,SizeX,SizeY, Filled, Color, ColorText, Text):
                     #continue
             #else:
                 #draw_text(x,y,Text,Color,ColorText)
-
-
-def clear_main_screen():
-    textbar = " " * webpage_limits[2]
-    for i in range(webpage_limits[3]):
-        draw_text(webpage_limits[0],webpage_limits[1]+i-1,textbar,[0,0,0],[255,255,255])
 
 def gen_line():
     line = ""
@@ -199,15 +194,18 @@ def reparse_text(text):
 
 def draw_ui():
     draw_box(0,0,term.width,term.height-1, False,[0,0,0],[255,255,255],"█")
+    #draw_box(0,0,term.width,5, False,[0,0,0],[255,255,255],"█")
+    #draw_box(0,0,20,5, False,[0,0,0],[255,255,255],"█")
+
     draw_text(2,term.height-2,"| F1:URL Bar | F2:Show Page Source | F3:Hide/Show Console |",[0,0,0],[255,255,255])
     draw_text(3,2,"KittyNet "+ version,[0,0,0],[255,255,255])
-    draw_line(0, 4, term.width, True,[255,255,255],[0,0,0]," ")
-    draw_line(19, 1, 3, False,[255,255,255],[0,0,0]," ")
+    draw_line(0, 4, term.width, True,[0,0,0],[255,255,255],"█")
+    draw_line(19, 1, 3, False,[0,0,0],[255,255,255],"█")
     draw_text(22,2,"URL:",[0,0,0],[255,255,255])
     draw_text(26,2,textbox_url,[0,0,0],[255,255,255])
 
 def draw_console():
-    clear_main_screen()
+    draw_ui()
     y_offset = 0
     for text in range(len(console_text)):
         text += current_console_offset
@@ -219,7 +217,7 @@ def draw_console():
             y_offset += 1
 
 def draw_webpage():
-    clear_main_screen()
+    draw_ui()
     y_offset = 0
     for text in range(len(current_webpage_formatted)):
         text += current_webpage_offset
@@ -236,14 +234,14 @@ def reload_webpage_from_memory(Webpage):
     current_webpage_formatted.clear()
     for text in Webpage.splitlines():
         reparse_text(text)
-    draw_ui()
+    #draw_ui()
     draw_webpage()
 
 def reload_source_from_memory(Webpage):
     current_webpage_formatted.clear()
     for text in Webpage.splitlines():
         current_webpage_formatted.append(text)
-    draw_ui()
+    #draw_ui()
     draw_webpage()
 
 def load_webpage(URL):
@@ -325,7 +323,6 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
     console_print("---")
 
     signal.signal(signal.SIGWINCH, on_resize)
-    draw_ui()
     tested = False
     x = 0
 
@@ -386,7 +383,7 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                             on_resize(1,1)
                         else:
                             in_console = True
-                            draw_ui()
+                            #draw_ui()
                             draw_console()
         elif val:
             match val:
