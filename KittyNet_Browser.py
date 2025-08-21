@@ -17,6 +17,14 @@ locked_url = "$Local_Sites/Boot_Readme"
 editing_textbox = False
 original_site_response = """"""
 viewing_source = False
+
+base_ui_text = [] #This is for the base of the UI
+full_ui_text = []
+
+rendered_ui_text = []
+
+parsed_site_text = []
+original_site_text = []
 console_text = []
 current_console_offset = 0
 in_console = False
@@ -31,11 +39,21 @@ if "--website" in launch_arguments:
 if not os.path.exists("./Websites"):
     os.makedirs("./Websites")
 
-#This is how we output text with some customizing!
-def draw_text(PosX, PosY, Text, ColorOn, ColorText):
-    #time.sleep(.01)
-    print(term.on_color_rgb(ColorOn[0],ColorOn[1],ColorOn[2])+term.color_rgb(ColorText[0],ColorText[1],ColorText[2])+term.move_xy(PosX, PosY) + Text + term.normal)
+def update_ui(OffsetY, LineTotal):
+    global full_ui_text
+    for i in range(LineTotal):
+        print(term.on_color_rgb(0,0,0) + term.color_rgb(255,255,255)+term.move_xy(0,OffsetY+i)+full_ui_text[OffsetY+i])
+        #draw_text(0,OffsetY+i,rendered_ui_text[OffsetY+i],[0,0,0],[255,255,255])
 
+#This is how we output text with some customizing!
+def draw_text(PosX, PosY, Text):
+    global full_ui_text
+    cloned = full_ui_text[PosY]
+
+    for i in range(len(Text)):
+        text = cloned[:PosX + i] + Text[i] + cloned[PosX + i + 1:]
+        full_ui_text[PosY] = text
+        cloned = text
 
 ##This is how we draw straight lines, no diagonals
 def draw_line(StartX,StartY,Size, Horizontal, Color, ColorText, Text):
@@ -47,36 +65,29 @@ def draw_line(StartX,StartY,Size, Horizontal, Color, ColorText, Text):
                 draw_text(StartX,StartY+Point,Text,Color,ColorText)
 
 ##This is how we draw boxes, we can fill them too
-def draw_box(PosX,PosY,SizeX,SizeY, Filled, Color, ColorText, Text):
+def draw_box(PosX,PosY,SizeX,SizeY, Filled, Color, ColorText, Text, init):
+    global base_ui_text
+    global full_ui_text
+    cloned = base_ui_text
+    if init:
+        base_ui_text = []
+        full_ui_text = []
 
     for y in range(SizeY):
+        y += PosY
         Face_String = ""
         if y == PosY or y == PosY + SizeY - 1:
-            Face_String = Text * SizeX
+            Face_String += Text * SizeX
         else:
-            Face_String = Text+(" " * (SizeX-2))+Text
+            Face_String += Text+(" " * (SizeX-2))+Text
 
-        draw_text(PosX,PosY+y,Face_String,Color,ColorText)
-
-
-
-        #y = y + PosY
-        #for x in range(SizeX):
-            #x = x + PosX
-
-            #if not Filled:
-                #if x == PosX or x == PosX + SizeX - 1:
-                    #if y == PosY or y == PosY + SizeY - 1:
-                        #draw_line(PosX,y,term.width,True,Color,ColorText,Text)
-                        #continue
-                   # else:
-                        #draw_text(x,y,Text,Color,ColorText)
-                        #continue
-                #if y == PosY or y == PosY + SizeY - 1:
-                    #draw_text(x,y,Text,Color,ColorText)
-                    #continue
-            #else:
-                #draw_text(x,y,Text,Color,ColorText)
+        if init:
+            base_ui_text.append(Face_String)
+            full_ui_text.append(Face_String)
+        else:
+            for i in range(SizeX):
+                cloned[y] = cloned[y][:PosX + i] + Face_String[i] + cloned[y][PosX + i + 1:]
+                full_ui_text[y] = cloned[y]
 
 def gen_line():
     line = ""
@@ -86,123 +97,77 @@ def gen_line():
     return line
 
 def reparse_text(text):
-    tokenized = []
-    splittext = text.split(" ")
-    unmodified_text = text
-    text = ""
-    is_centered = False
-    r_fill = False
-    l_fill = False
-    for token in range(len(splittext)):
-        if splittext[token].startswith("c_"):
-            match splittext[token]:
+    global current_webpage_formatted
+
+    original_text = text
+    real_text = text
+    edited_line = " "*webpage_limits[2]
+    edited_points = []
+    skip_amount = 0
+    enterpoint_count = 0
+    linecounter = 0
+    for basechar in range(len(text)):
+        if skip_amount == 0:
+            if text[basechar] == "[" and text[basechar-1] != "/":
+                secondchar_ending = 0
+                for secondchar in range(len(text[basechar:])):
+                    if text[basechar:][secondchar] == "]":
+                        count_text = text[basechar:basechar+secondchar_ending+1]
+                        if "c_line" in count_text:
+                            linecounter += 1
+                        textline = "{Enter_"+str(enterpoint_count)+"}"
+                        original_text = original_text.replace(count_text,textline,1)
+                        real_text = real_text.replace(count_text,"",1)
+                        enterpoint_count += 1
+                        edited_points.append([textline,basechar,secondchar_ending+basechar,count_text,""])
+                        skip_amount = (basechar+secondchar_ending)-basechar
+                        break
+                    secondchar_ending += 1
+        else:
+            skip_amount -= 1
+
+    edited_line = edited_line[len(real_text):]
+
+
+    if linecounter > 0:
+        edited_line = " " * int(len(edited_line)/linecounter)
+
+    for i in range(len(edited_points)):
+
+
+        split = edited_points[i][3][1:len(edited_points[i][3])-1].split(" ")
+        for splitdata in split:
+            match splitdata:
                 case "c_line":
-                    tokenized.append(True)
-                    splittext[token] = gen_line()
-                case "c_center":
-                    tokenized.append(True)
-                    is_centered = True
-                    splittext[token] = "{CenterPost}"
+                    edited_points[i][4] += edited_line
                 case "c_color_reset":
-                    tokenized.append(True)
-                    splittext[token] = term.color_rgb(255,255,255)+term.on_color_rgb(0,0,0)
-                case "c_bold":
-                    tokenized.append(True)
-                    splittext[token] = term.bold
-                case "c_reset":
-                    tokenized.append(True)
-                    splittext[token] = term.normal + term.color_rgb(255,255,255)+term.on_color_rgb(0,0,0)
-                case "c_underline":
-                    tokenized.append(True)
-                    splittext[token] = term.normal
-                case "c_r_fill":
-                    tokenized.append(True)
-                    r_fill = True
-                    splittext[token] = "{RightPost}"
-                case "c_l_fill":
-                    tokenized.append(True)
-                    l_fill = True
-                    splittext[token] = "{LeftPost}"
-                case "c_space":
-                    tokenized.append(True)
-                    splittext[token] = " "
+                    edited_points[i][4] += term.on_color_rgb(0,0,0) + term.color_rgb(255,255,255)
                 case _:
-                    if splittext[token].endswith(")"):
-                        parse_text = splittext[token][:-1]
-                        case_parse = parse_text.split(",")
-                        if case_parse[0].startswith("c_on_color") and len(case_parse) == 3:
-                            tokenized.append(True)
-                            case_parse[0] = case_parse[0].removeprefix("c_on_color(")
-                            splittext[token] = term.on_color_rgb(int(case_parse[0]),int(case_parse[1]),int(case_parse[2]))
-                        elif case_parse[0].startswith("c_color") and len(case_parse) == 3:
-                            tokenized.append(True)
-                            case_parse[0] = case_parse[0].removeprefix("c_color(")
-                            splittext[token] = term.color_rgb(int(case_parse[0]),int(case_parse[1]),int(case_parse[2]))
-                        else:
-                            tokenized.append(False)
-                    else:
-                        tokenized.append(False)
+                    if splitdata.endswith(")"):
+                        if splitdata.startswith("c_on_color("):
+                            data = splitdata[len("c_on_color("):len(splitdata)-1].split(",")
+                            edited_points[i][4] += term.on_color_rgb(data[0],data[1],data[2])
+                        elif splitdata.startswith("c_color("):
+                            data = splitdata[len("c_color("):len(splitdata)-1].split(",")
+                            edited_points[i][4] += term.color_rgb(data[0],data[1],data[2])
 
+    print()
 
-        elif splittext[token].startswith("\\c_"):
-            splittext[token] = splittext[token][1:]
-            tokenized.append(False)
-        else:
-            tokenized.append(False)
+    for i in range(enterpoint_count):
+        textline = "{Enter_"+str(i)+"}"
+        original_text = original_text.replace(textline, edited_points[i][4])
 
-    #print(tokenized)
-    clean_text = ""
-
-    for token in range(len(splittext)):
-        if token > 0:
-            text += splittext[token]
-        else:
-            text += splittext[token]
-
-        if not tokenized[token]:
-            if token + 1 <= len(splittext)-1:
-                if tokenized[token+1]:
-                    pass
-                else:
-                    text += " "
-
-
-    for token in range(len(splittext)):
-        if not tokenized[token]:
-            if token > 0:
-                clean_text += splittext[token]
-            else:
-                clean_text += splittext[token]
-
-            if not tokenized[token]:
-                if token + 1 <= len(splittext)-1:
-                    if tokenized[token+1]:
-                        pass
-                    else:
-                        clean_text += " "
-    if is_centered:
-        text = text.format(CenterPost = gen_line()[:-(int(webpage_limits[2]/2)+int(len(clean_text)/2)+1)])
-        if term.width % 2 == 0:
-            text = text + " "
-    if r_fill:
-        text = text.format(RightPost = gen_line()[:-int(len(clean_text))])
-    if l_fill:
-        text = text.format(LeftPost = gen_line()[:-int(len(clean_text))])
-
-
-    current_webpage_formatted.append(text)
+    current_webpage_formatted.append(original_text)
 
 def draw_ui():
-    draw_box(0,0,term.width,term.height-1, False,[0,0,0],[255,255,255],"█")
-    #draw_box(0,0,term.width,5, False,[0,0,0],[255,255,255],"█")
-    #draw_box(0,0,20,5, False,[0,0,0],[255,255,255],"█")
-
-    draw_text(2,term.height-2,"| F1:URL Bar | F2:Show Page Source | F3:Hide/Show Console |",[0,0,0],[255,255,255])
-    draw_text(3,2,"KittyNet "+ version,[0,0,0],[255,255,255])
-    draw_line(0, 4, term.width, True,[0,0,0],[255,255,255],"█")
-    draw_line(19, 1, 3, False,[0,0,0],[255,255,255],"█")
-    draw_text(22,2,"URL:",[0,0,0],[255,255,255])
-    draw_text(26,2,textbox_url,[0,0,0],[255,255,255])
+    draw_box(0,0,term.width,term.height-1, False,[0,0,0],[255,255,255],"█", True)
+    draw_box(0,0,term.width,5, False,[0,0,0],[255,255,255],"█", False)
+    draw_box(0,0,20,5, False,[0,0,0],[255,255,255],"█",False)
+    draw_text(2,term.height-2,"| F1:URL Bar | F2:Show Page Source | F3:Hide/Show Console |")
+    draw_text(3,2,"KittyNet "+ version)
+    draw_text(22,2,"URL:")
+    draw_text(26,2,textbox_url)
+    update_ui(0,term.height-1)
 
 def draw_console():
     draw_ui()
@@ -211,23 +176,26 @@ def draw_console():
         text += current_console_offset
         if text < len(console_text) and y_offset < webpage_limits[3]-2:
             try:
-                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text].format(term = term),[0,0,0],[255,255,255])
+                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text].format(term = term))
             except:
-                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text],[0,0,0],[255,255,255])
+                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text])
             y_offset += 1
+    update_ui(webpage_limits[1],y_offset)
 
 def draw_webpage():
+    global webpage_limits
     draw_ui()
     y_offset = 0
     for text in range(len(current_webpage_formatted)):
         text += current_webpage_offset
         if text < len(current_webpage_formatted) and y_offset < webpage_limits[3]-2:
-
             try:
-                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_webpage_formatted[text].format(term = term),[0,0,0],[255,255,255])
+                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_webpage_formatted[text].format(term = term))
             except:
-                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_webpage_formatted[text],[0,0,0],[255,255,255])
+                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_webpage_formatted[text])
             y_offset += 1
+
+    update_ui(webpage_limits[1],y_offset)
 
 
 def reload_webpage_from_memory(Webpage):
@@ -260,7 +228,7 @@ def load_webpage(URL):
                 raise Exception("")
         except:
             draw_ui()
-            draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: ./"+ URL,[0,0,0],[255,255,255])
+            draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: ./"+ URL)
 
     else:
         urlfull = "http://"+URL
@@ -275,7 +243,7 @@ def load_webpage(URL):
                     f.write(response.text)
                 reload_webpage_from_memory(response.text)
         except requests.exceptions.RequestException:
-            draw_text(webpage_limits[0],webpage_limits[1],"Error Connecting to: "+ URL,[0,0,0],[255,255,255])
+            draw_text(webpage_limits[0],webpage_limits[1],"Error Connecting to: "+ URL)
         except requests.exceptions.HTTPError:
             print("Failed")
 
@@ -298,7 +266,7 @@ def on_resize(sig, action):
                 raise Exception("")
         except:
             draw_ui()
-            draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: ./"+ URL,[0,0,0],[255,255,255])
+            draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: ./"+ URL)
     else:
         if os.path.isfile("./Websites/"+locked_url):
             with open("./Websites/"+locked_url) as f:
@@ -308,7 +276,7 @@ def on_resize(sig, action):
                     reload_webpage_from_memory(f.read())
         else:
             draw_ui()
-            draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: http://"+ locked_url,[0,0,0],[255,255,255])
+            draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: http://"+ locked_url)
 
 def console_print(Text):
     console_text.append(Text)
@@ -321,6 +289,8 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
     console_print("Copyright Duskitten 2025")
     console_print("Distributed under MIT License")
     console_print("---")
+
+    #draw_ui()
 
     signal.signal(signal.SIGWINCH, on_resize)
     tested = False
@@ -345,8 +315,9 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                         pass
                     else:
                         textbox_url = textbox_url[:-1]
-                        draw_text(26+len(textbox_url),2," ",[0,0,0],[255,255,255])
-                        draw_text(26,2,textbox_url,[0,0,0],[255,255,255])
+                        draw_text(26+len(textbox_url),2," ")
+                        draw_text(26,2,textbox_url)
+                        update_ui(2,1)
                 case "KEY_DOWN":
                     if not editing_textbox:
                         if current_webpage_offset < len(current_webpage_formatted):
@@ -392,8 +363,7 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
 
             if editing_textbox:
                 textbox_url += val
-                draw_text(26,2,textbox_url,[0,0,0],[255,255,255])
+                draw_text(26,2,textbox_url)
+                update_ui(2,1)
             else:
                 pass
-
-

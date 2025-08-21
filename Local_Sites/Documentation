@@ -1,33 +1,35 @@
-c_on_color(120,120,255) c_line
-c_on_color(120,120,255) c_center  KITTYNET DOCUMENTATION c_center
-c_on_color(120,120,255) c_line
+[c_on_color(120,120,255) c_line]
+[c_on_color(120,120,255) c_line]KITTYNET DOCUMENTATION[c_line]
+[c_on_color(120,120,255) c_line]
 
-KITTYNET DOCUMENTATION c_r_fill
-c_l_fill KITTYNET DOCUMENTATION
+KITTYNET DOCUMENTATION [c_line]
+[c_line] KITTYNET DOCUMENTATION
 
 Use Arrow Keys "UP" and "DOWN" to scroll the browser!
 
-All commands should be marked with "c_".
+All commands should be marked with "\[]".
 Add "\" to beginning of command to break it for visual reference.
 
-c_bold c_on_color(20,50,194) c_space - \c_line c_space
-c_space -- Generates a new line break
-c_space -- Advised to use in tandem with c_space c_on_color(20,50,194) \c_on_color c_color_reset c_space for colored bar
 
-c_bold c_on_color(20,50,194) c_space - \c_space c_space
-c_space -- adds a buffer space
 
-c_bold c_on_color(20,50,194) c_space - \c_on_color(R,G,B) c_space
-c_space -- sets the background of a text line
+[c_bold c_on_color(20,50,194)]- \c_line[c_line]
+    -- Generates a new line break
+    -- Advised to use in tandem with [c_on_color(20,50,194)] \c_on_color [c_color_reset] for colored bar
 
-c_bold c_on_color(20,50,194) c_space - \c_color(R,G,B) c_space
-c_space -- sets the text color of a text line
+[c_bold c_on_color(20,50,194)]- \c_space[c_line]
+    -- adds a buffer space
 
-c_bold c_on_color(20,50,194) c_space - \c_color_reset c_space
-c_space -- resets a text line to default colors
+[c_bold c_on_color(20,50,194)]- \c_on_color(R,G,B)[c_line]
+    -- sets the background of a text line
 
-c_bold c_on_color(20,50,194) c_space - \c_bold c_space
-c_space -- makes text be bold
+[c_bold c_on_color(20,50,194)]- \c_color(R,G,B)[c_line]
+    -- sets the text color of a text line
 
-c_bold c_on_color(20,50,194) c_space - \c_reset c_space
-c_space -- resets the text line to base app default
+[c_bold c_on_color(20,50,194)]- \c_color_reset[c_line]
+    -- resets a text line to default colors
+
+[c_bold c_on_color(20,50,194)]- \c_bold[c_line]
+    -- makes text be bold
+
+[c_bold c_on_color(20,50,194)]- \c_reset[c_line]
+    -- resets the text line to base app default

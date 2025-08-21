@@ -1,30 +1,30 @@
-c_on_color(120,120,255) c_line
+[c_on_color(120,120,255) c_line]
 
-c_on_color(0,0,0)    c_bold  c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀Meow Meow!⠀WELCOME TO KITTYNET!⠀⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)    c_bold  c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀V⠀⠀⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
+[c_on_color(0,0,0) c_bold c_line c_color(255,255,255)]Meow Meow! WELCOME TO KITTYNET![c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_bold c_line c_color(255,255,255)]V[c_on_color(0,0,0) c_line]
 
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀████⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀██⠀⠀██⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀██████████⠀⠀⠀⠀⠀⠀██⠀⠀⠀⠀██⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀██⠀⠀⠀⠀⠀⠀████████████⠀⠀██⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀██⠀⠀██⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀████⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀████⠀⠀██⠀⠀⠀⠀██⠀⠀██⠀⠀⠀⠀██⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀██⠀⠀██⠀⠀⠀⠀██⠀⠀██⠀⠀██⠀⠀██ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀██⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀██⠀⠀██⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀██⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀██⠀⠀██⠀⠀⠀⠀ c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255) ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀████████████████⠀⠀⠀⠀⠀⠀ c_on_color(0,0,0) c_center
+[c_on_color(0,0,0) c_line c_color(255,255,255)]                    ████      [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]                  ██  ██      [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]██████████      ██    ██      [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]██      ████████████  ██      [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]  ██  ██            ████      [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]    ████  ██    ██  ██    ██  [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]      ██  ██    ██  ██  ██  ██[c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]      ██            ██  ██    [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]      ██            ██  ██    [c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]        ████████████████      [c_on_color(0,0,0) c_line]
 
-c_on_color(120,120,255) c_line
+[c_on_color(120,120,255) c_line]
 
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  KittyNet is a free and open source project c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  with the goal of making a whole new internet! c_on_color(0,0,0) c_center
+[c_on_color(0,0,0) c_line c_color(255,255,255)]KittyNet is a free and open source project[c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]with the goal of making a whole new internet![c_on_color(0,0,0) c_line]
 
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  To start, press the "F1" key to search in the URL Bar! c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  The "F2" key allows for you to view the source of pages! c_on_color(0,0,0) c_center
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  The "F3" key allows for you to view the debug output in the console! c_on_color(0,0,0) c_center
+[c_on_color(0,0,0) c_line c_color(255,255,255)]To start, press the "F1" key to search in the URL Bar![c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]The "F2" key allows for you to view the source of pages![c_on_color(0,0,0) c_line]
+[c_on_color(0,0,0) c_line c_color(255,255,255)]The "F3" key allows for you to view the debug output in the console![c_on_color(0,0,0) c_line]
 
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  Use the $ for local files relative to this .py file! c_on_color(0,0,0) c_center
+[c_on_color(0,0,0) c_line c_color(255,255,255)]Use the $ for local files relative to this .py file![c_on_color(0,0,0) c_line]
 
-c_on_color(0,0,0)   c_center  c_color(255,255,255)  To find documentation for your own site, go to $Local_Sites/Documentation c_on_color(0,0,0) c_center
+[c_on_color(0,0,0) c_line c_color(255,255,255)]To find documentation for your own site, go to $Local_Sites/Documentation[c_on_color(0,0,0) c_line]
 
-c_on_color(120,120,255) c_line
+[c_on_color(120,120,255) c_line][c_color_reset]
