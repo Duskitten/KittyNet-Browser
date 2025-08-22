@@ -340,7 +340,7 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
     
     if not "--ignoreconfig" in launch_arguments: 
         reload_config()
-                
+                 
     #draw_ui()
 
     signal.signal(signal.SIGWINCH, on_resize)
