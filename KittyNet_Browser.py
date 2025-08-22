@@ -7,8 +7,17 @@ import sys
 launch_arguments = sys.argv
 
 term = blessed.Terminal()
+boarder_char = "█"
+boarder_color = [255,255,255]
+foreground_color = [255,255,255]
+background_color = [0,0,0]
 
-version = "0.0.1"
+blink_char = "█"
+blink_alt = " "
+blink_on = False
+blink = " "
+counter = 0
+version = "0.0.2"
 webpage_limits = [2,6,term.width-4,term.height-7]
 current_webpage_formatted = []
 current_webpage_offset = 0
@@ -21,29 +30,24 @@ viewing_source = False
 base_ui_text = [] #This is for the base of the UI
 full_ui_text = []
 
-rendered_ui_text = []
+interaction_points = []
 
+
+rendered_ui_text = []
 parsed_site_text = []
 original_site_text = []
 console_text = []
 current_console_offset = 0
 in_console = False
 
-if "--website" in launch_arguments:
-    position = launch_arguments.index("--website")
-    if position + 1 <= len(launch_arguments):
-        textbox_url = launch_arguments[position + 1]
-        locked_url = launch_arguments[position + 1]
 
-
-if not os.path.exists("./Websites"):
-    os.makedirs("./Websites")
 
 def update_ui(OffsetY, LineTotal):
     global full_ui_text
     for i in range(LineTotal):
-        print(term.on_color_rgb(0,0,0) + term.color_rgb(255,255,255)+term.move_xy(0,OffsetY+i)+full_ui_text[OffsetY+i])
+        print(term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(foreground_color[0],foreground_color[1],foreground_color[2])+term.move_xy(0,OffsetY+i)+full_ui_text[OffsetY+i])
         #draw_text(0,OffsetY+i,rendered_ui_text[OffsetY+i],[0,0,0],[255,255,255])
+    
 
 #This is how we output text with some customizing!
 def draw_text(PosX, PosY, Text):
@@ -106,6 +110,8 @@ def reparse_text(text):
     skip_amount = 0
     enterpoint_count = 0
     linecounter = 0
+    last_modifier = []
+    
     for basechar in range(len(text)):
         if skip_amount == 0:
             if text[basechar] == "[" and text[basechar-1] != "/":
@@ -123,25 +129,30 @@ def reparse_text(text):
                         skip_amount = (basechar+secondchar_ending)-basechar
                         break
                     secondchar_ending += 1
+            elif text[basechar] == "[" and text[basechar-1] == "/":
+                original_text = original_text.replace("/","",1)
         else:
             skip_amount -= 1
 
     edited_line = edited_line[len(real_text):]
 
-
     if linecounter > 0:
         edited_line = " " * int(len(edited_line)/linecounter)
 
     for i in range(len(edited_points)):
-
-
         split = edited_points[i][3][1:len(edited_points[i][3])-1].split(" ")
         for splitdata in split:
             match splitdata:
                 case "c_line":
                     edited_points[i][4] += edited_line
+                    if term.width % 2 != 0:
+                        edited_line += " "
+                case "c_bold":
+                    edited_points[i][4] += term.bold
                 case "c_color_reset":
-                    edited_points[i][4] += term.on_color_rgb(0,0,0) + term.color_rgb(255,255,255)
+                    edited_points[i][4] += term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(background_color[0],background_color[1],background_color[2])
+                case "c_reset":
+                    edited_points[i][4] += term.normal + term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(background_color[0],background_color[1],background_color[2])
                 case _:
                     if splitdata.endswith(")"):
                         if splitdata.startswith("c_on_color("):
@@ -151,19 +162,18 @@ def reparse_text(text):
                             data = splitdata[len("c_color("):len(splitdata)-1].split(",")
                             edited_points[i][4] += term.color_rgb(data[0],data[1],data[2])
 
-    print()
-
     for i in range(enterpoint_count):
         textline = "{Enter_"+str(i)+"}"
         original_text = original_text.replace(textline, edited_points[i][4])
 
+    original_text+= term.normal + term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(background_color[0],background_color[1],background_color[2])
     current_webpage_formatted.append(original_text)
 
 def draw_ui():
-    draw_box(0,0,term.width,term.height-1, False,[0,0,0],[255,255,255],"█", True)
-    draw_box(0,0,term.width,5, False,[0,0,0],[255,255,255],"█", False)
-    draw_box(0,0,20,5, False,[0,0,0],[255,255,255],"█",False)
-    draw_text(2,term.height-2,"| F1:URL Bar | F2:Show Page Source | F3:Hide/Show Console |")
+    draw_box(0,0,term.width,term.height-1, False,background_color,boarder_color,boarder_char, True)
+    draw_box(0,0,term.width,5, False,background_color,boarder_color,boarder_char, False)
+    draw_box(0,0,20,5, False,background_color,boarder_color,boarder_char,False)
+    draw_text(2,term.height-2,"| F1:URL Bar | F2:Toggle Source | F3:Toggle Console |")
     draw_text(3,2,"KittyNet "+ version)
     draw_text(22,2,"URL:")
     draw_text(26,2,textbox_url)
@@ -214,8 +224,15 @@ def reload_source_from_memory(Webpage):
 
 def load_webpage(URL):
     global locked_url
-
-    if URL.startswith("$"):
+    global textbox_url
+    if URL.startswith("--"):
+        match URL.lower():
+            case "--reload":
+                reload_config()
+                textbox_url = locked_url
+                draw_text(26,2,textbox_url)
+                load_webpage(textbox_url)
+    elif URL.startswith("$"):
         locked_url = URL
         URL = URL[1:]
         try:
@@ -245,7 +262,7 @@ def load_webpage(URL):
         except requests.exceptions.RequestException:
             draw_text(webpage_limits[0],webpage_limits[1],"Error Connecting to: "+ URL)
         except requests.exceptions.HTTPError:
-            print("Failed")
+            draw_text(webpage_limits[0],webpage_limits[1],"Error Connecting to: "+ URL)
 
 
 
@@ -280,6 +297,25 @@ def on_resize(sig, action):
 
 def console_print(Text):
     console_text.append(Text)
+    
+def reload_config():
+    global foreground_color
+    global background_color
+    global boarder_char
+    
+    
+    if os.path.isfile("./KittyNet.config"):
+        console_print("Config File Found Successfully")
+        with open("./KittyNet.config") as f:
+            for i in f.read().splitlines():
+                current = i.split(" ")
+                match current[0]:
+                    case "foreground_color":
+                        foreground_color = current[1].split(",")
+                    case "background_color":
+                        background_color = current[1].split(",")
+                    case "boarder_character":
+                        boarder_char = current[1]
 
 with term.fullscreen(), term.hidden_cursor(), term.cbreak():
 
@@ -289,7 +325,21 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
     console_print("Copyright Duskitten 2025")
     console_print("Distributed under MIT License")
     console_print("---")
+    
+    if "--website" in launch_arguments:
+        position = launch_arguments.index("--website")
+        if position + 1 <= len(launch_arguments):
+            textbox_url = launch_arguments[position + 1]
+            locked_url = launch_arguments[position + 1]
 
+
+    if not os.path.exists("./Websites"):
+        os.makedirs("./Websites")
+    else:
+        console_print("Websites Folder Found Successfully")
+        
+    reload_config()
+                
     #draw_ui()
 
     signal.signal(signal.SIGWINCH, on_resize)
@@ -299,8 +349,27 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
     load_webpage(textbox_url)
 
     while True:
+        
+        if editing_textbox:
+            counter += 1
+            if counter % 20000 == 0:
+                counter = 0
+                
+                blink_on =  not blink_on
+                if blink_on:
+                    blink = blink_char
+                else:
+                    blink = blink_alt
+
+                draw_text(26+len(textbox_url),2,blink)
+                update_ui(2,1)
+            
+            
         val = ''
-        val = term.inkey()
+        val = term.inkey(0)
+            
+         
+
 
         if val.is_sequence:
             match val.name:
@@ -315,7 +384,8 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                         pass
                     else:
                         textbox_url = textbox_url[:-1]
-                        draw_text(26+len(textbox_url),2," ")
+                        draw_text(26+len(textbox_url)+1,2," ")
+                        draw_text(26+len(textbox_url),2,blink_char)
                         draw_text(26,2,textbox_url)
                         update_ui(2,1)
                 case "KEY_DOWN":
@@ -364,6 +434,9 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
             if editing_textbox:
                 textbox_url += val
                 draw_text(26,2,textbox_url)
+                draw_text(26+len(textbox_url),2,blink_char)
                 update_ui(2,1)
             else:
                 pass
+            
+        
