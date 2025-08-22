@@ -337,8 +337,9 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
         os.makedirs("./Websites")
     else:
         console_print("Websites Folder Found Successfully")
-        
-    reload_config()
+    
+    if not "--ignoreconfig" in launch_arguments: 
+        reload_config()
                 
     #draw_ui()
 
