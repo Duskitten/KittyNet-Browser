@@ -25,6 +25,6 @@
 
 [c_line]Use the $ for local files relative to this .py file![c_line]
 
-[c_line]To find documentation for your own site, go to $Local_Sites/Documentation[c_line]
+[c_line]To find documentation for your own site, go to [c_bold c_link($Local_Sites/Documentation|(94,151,255)|(0,0,0)|(0,0,0)|(94,151,255))] [c_reset c_color(255,255,255)]123[c_line]
 
 [c_on_color(120,120,255) c_line]

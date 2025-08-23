@@ -31,7 +31,7 @@ base_ui_text = [] #This is for the base of the UI
 full_ui_text = []
 
 interaction_points = []
-
+selected_interaction_point = -1
 
 rendered_ui_text = []
 parsed_site_text = []
@@ -46,8 +46,13 @@ def update_ui(OffsetY, LineTotal):
     global full_ui_text
     for i in range(LineTotal):
         print(term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(foreground_color[0],foreground_color[1],foreground_color[2])+term.move_xy(0,OffsetY+i)+full_ui_text[OffsetY+i])
-        #draw_text(0,OffsetY+i,rendered_ui_text[OffsetY+i],[0,0,0],[255,255,255])
-    
+    if not editing_textbox and not in_console and not viewing_source:
+        for i in interaction_points:
+            #print(i[4])
+            if i[1] == "Link":
+                print(term.underline(term.blue+term.move_xy(i[4]+2,OffsetY+i[0])+i[2][0]))
+            #draw_text(0,OffsetY+i,rendered_ui_text[OffsetY+i],[0,0,0],[255,255,255])
+        
 
 #This is how we output text with some customizing!
 def draw_text(PosX, PosY, Text):
@@ -100,8 +105,9 @@ def gen_line():
 
     return line
 
-def reparse_text(text):
+def reparse_text(text,line):
     global current_webpage_formatted
+    global interaction_points
 
     original_text = text
     real_text = text
@@ -158,14 +164,27 @@ def reparse_text(text):
                         if splitdata.startswith("c_on_color("):
                             data = splitdata[len("c_on_color("):len(splitdata)-1].split(",")
                             edited_points[i][4] += term.on_color_rgb(data[0],data[1],data[2])
+                        elif splitdata.startswith("c_on_color("):
+                            data = splitdata[len("c_on_color("):len(splitdata)-1].split(",")
+                            edited_points[i][4] += term.on_color_rgb(data[0],data[1],data[2])
                         elif splitdata.startswith("c_color("):
                             data = splitdata[len("c_color("):len(splitdata)-1].split(",")
                             edited_points[i][4] += term.color_rgb(data[0],data[1],data[2])
+                        elif splitdata.startswith("c_link("):
+                            data = splitdata[len("c_link("):len(splitdata)-1].replace("(","").replace(")","").split("|")
+                            interaction_points.append([line,"Link",data,edited_points[i][0],0])
 
     for i in range(enterpoint_count):
         textline = "{Enter_"+str(i)+"}"
+        found_pos = original_text.find(textline)
+        for x in range(len(interaction_points)):
+            if textline in interaction_points[x]:
+                interaction_points[x][4] = original_text.find(textline)
+                break
+        
         original_text = original_text.replace(textline, edited_points[i][4])
-
+    #print(interaction_points)
+    #print(original_text)
     original_text+= term.normal + term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(background_color[0],background_color[1],background_color[2])
     current_webpage_formatted.append(original_text)
 
@@ -209,20 +228,31 @@ def draw_webpage():
 
 
 def reload_webpage_from_memory(Webpage):
+    global interaction_points
+    global current_webpage_formatted
+    
+    interaction_points.clear()
     current_webpage_formatted.clear()
-    for text in Webpage.splitlines():
-        reparse_text(text)
+    page = Webpage.splitlines()
+    for text in range(len(page)):
+        reparse_text(page[text],text)
     #draw_ui()
     draw_webpage()
 
 def reload_source_from_memory(Webpage):
+    global interaction_points
+    global current_webpage_formatted
+    
+    interaction_points.clear()
     current_webpage_formatted.clear()
-    for text in Webpage.splitlines():
-        current_webpage_formatted.append(text)
+    page = Webpage.splitlines()
+    for text in range(len(page)):
+        reparse_text(page[text],text)
     #draw_ui()
     draw_webpage()
 
 def load_webpage(URL):
+    global interaction_points
     global locked_url
     global textbox_url
     if URL.startswith("--"):
@@ -316,6 +346,16 @@ def reload_config():
                         background_color = current[1].split(",")
                     case "boarder_character":
                         boarder_char = current[1]
+                        
+def link_clicked(URL):
+    global editing_textbox
+    global in_console
+    global viewing_source
+    
+    editing_textbox = False
+    in_console = False
+    viewing_source = False
+    load_webpage(URL)
 
 with term.fullscreen(), term.hidden_cursor(), term.cbreak():
 
@@ -376,10 +416,14 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
             match val.name:
                 case "KEY_ENTER":
                     if editing_textbox:
-                        editing_textbox = False
-                        in_console = False
-                        viewing_source = False
-                        load_webpage(textbox_url)
+                        link_clicked(textbox_url)
+                    elif not editing_textbox and not in_console and not viewing_source and selected_interaction_point != -1:
+                        textbox_url = interaction_points[selected_interaction_point][2][0]
+                        draw_text(26,2,textbox_url)
+                        update_ui(2,1)
+                        link_clicked(textbox_url)
+                        
+                        
                 case "KEY_BACKSPACE":
                     if not editing_textbox:
                         pass
@@ -400,15 +444,16 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                             current_webpage_offset -= 1
                             draw_webpage()
                 case "KEY_TAB":
-                    pass
+                    if not editing_textbox and not in_console and not viewing_source:
+                        selected_interaction_point += 1
+                        if selected_interaction_point > len(interaction_points):
+                            selected_interaction_point = -1
+
                 case "KEY_F1":
                     if not editing_textbox:
                         editing_textbox = True
                     else:
-                        editing_textbox = False
-                        in_console = False
-                        viewing_source = False
-                        load_webpage(textbox_url)
+                        link_clicked(textbox_url)
 
                 case "KEY_F2":
                    if not editing_textbox:
