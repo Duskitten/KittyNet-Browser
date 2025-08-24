@@ -30,3 +30,7 @@ Add "/" to beginning of command to break it for visual reference.
 
 [c_bold c_on_color(20,50,194)]- c_reset[c_line]
 [c_reset c_color(255,255,255)]    -- resets the text line to base app default.
+
+[c_bold c_on_color(20,50,194)]- c_link(URL|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B))[c_line]
+[c_reset c_color(255,255,255)]    -- URL, Foreground, Background, Selected Foreground, Selected Background
+[c_reset c_color(255,255,255)]    -- It is advised to reserve the space for URL by typing immediately after the "]"

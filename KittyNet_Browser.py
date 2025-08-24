@@ -23,6 +23,7 @@ current_webpage_formatted = []
 current_webpage_offset = 0
 textbox_url = "$Local_Sites/Boot_Readme"
 locked_url = "$Local_Sites/Boot_Readme"
+last_url = "$Local_Sites/Boot_Readme"
 editing_textbox = False
 original_site_response = """"""
 viewing_source = False
@@ -50,17 +51,25 @@ def update_ui(OffsetY, LineTotal):
     for i in range(LineTotal):
         print(term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(foreground_color[0],foreground_color[1],foreground_color[2])+term.move_xy(0,OffsetY+i)+full_ui_text[OffsetY+i])
     
-    update_interactive_layer(OffsetY, LineTotal)
+    update_interactive_layer()
             #draw_text(0,OffsetY+i,rendered_ui_text[OffsetY+i],[0,0,0],[255,255,255])
 
-def update_interactive_layer(OffsetY, LineTotal):
+def update_interactive_layer():
     global current_console_offset
     global webpage_limits
     if not editing_textbox and not in_console and not viewing_source:
         for i in range(len(interaction_points)):
             if interaction_points[i][0]+(-1*current_webpage_offset)+6 < webpage_limits[3]+4 and interaction_points[i][0]+(-1*current_webpage_offset)+6 > webpage_limits[1]-1:
                 if interaction_points[i][1] == "Link":
-                    print(term.underline(term.blue+term.move_xy(interaction_points[i][4]+3,interaction_points[i][0]+(-1*current_webpage_offset)+6)+interaction_points[i][2][0]))
+                    normal_color = interaction_points[i][2][1].split(",")
+                    normal_on_color = interaction_points[i][2][2].split(",")
+                    selected_color = interaction_points[i][2][3].split(",")
+                    selected_on_color = interaction_points[i][2][4].split(",")
+                    match interaction_points[i][5]:
+                        case False:
+                            print(term.underline(term.on_color_rgb(normal_on_color[0],normal_on_color[1],normal_on_color[2])+term.color_rgb(normal_color[0],normal_color[1],normal_color[2])+term.move_xy(interaction_points[i][4],interaction_points[i][0]+(-1*current_webpage_offset)+6)+interaction_points[i][2][0]))
+                        case True:
+                            print(term.underline(term.on_color_rgb(selected_on_color[0],selected_on_color[1],selected_on_color[2])+term.color_rgb(selected_color[0],selected_color[1],selected_color[2])+term.move_xy(interaction_points[i][4],interaction_points[i][0]+(-1*current_webpage_offset)+6)+interaction_points[i][2][0]))
 
 
 #This is how we output text with some customizing!
@@ -126,6 +135,9 @@ def reparse_text(text,line):
     enterpoint_count = 0
     linecounter = 0
     last_modifier = []
+    normal_char = 0
+    last_normal_char = []
+    
     
     for basechar in range(len(text)):
         if skip_amount == 0:
@@ -133,6 +145,7 @@ def reparse_text(text,line):
                 secondchar_ending = 0
                 for secondchar in range(len(text[basechar:])):
                     if text[basechar:][secondchar] == "]":
+                        last_normal_char.append(basechar)
                         count_text = text[basechar:basechar+secondchar_ending+1]
                         if "c_line" in count_text:
                             linecounter += 1
@@ -146,9 +159,13 @@ def reparse_text(text,line):
                     secondchar_ending += 1
             elif text[basechar] == "[" and text[basechar-1] == "/":
                 original_text = original_text.replace("/","",1)
+            else:
+                normal_char += 1
         else:
             skip_amount -= 1
-
+    
+    console_print(str(last_normal_char))
+    
     edited_line = edited_line[len(real_text):]
 
     if linecounter > 0:
@@ -178,15 +195,23 @@ def reparse_text(text,line):
                             edited_points[i][4] += term.color_rgb(data[0],data[1],data[2])
                         elif splitdata.startswith("c_link("):
                             data = splitdata[len("c_link("):len(splitdata)-1].replace("(","").replace(")","").split("|")
-                            interaction_points.append([line,"Link",data,edited_points[i][0],0])
+                            
+                            
+                            if term.width % 2 != 0:
+                                if linecounter == 0:
+                                    interaction_points.append([line,"Link",data,edited_points[i][0],last_normal_char[i]+2,False])
+                                else:
+                                    interaction_points.append([line,"Link",data,edited_points[i][0],len(edited_line)+last_normal_char[i]-7,False])
+                            else:
+                                if linecounter == 0:
+                                    interaction_points.append([line,"Link",data,edited_points[i][0],last_normal_char[i]+2,False])
+                                else:
+                                    interaction_points.append([line,"Link",data,edited_points[i][0],len(edited_line)+last_normal_char[i]-6,False])
 
     for i in range(enterpoint_count):
         textline = "{Enter_"+str(i)+"}"
+        console_print(original_text)
         found_pos = original_text.find(textline)
-        for x in range(len(interaction_points)):
-            if textline in interaction_points[x]:
-                interaction_points[x][4] = original_text.find(textline)
-                break
         
         original_text = original_text.replace(textline, edited_points[i][4])
     #print(interaction_points)
@@ -261,11 +286,18 @@ def load_webpage(URL):
     global interaction_points
     global locked_url
     global textbox_url
+    global last_url
+    
+    core_url = URL
     if URL.startswith("--"):
         match URL.lower():
             case "--reload":
                 reload_config()
                 textbox_url = locked_url
+                draw_text(26,2,textbox_url)
+                load_webpage(textbox_url)
+            case "--back":
+                textbox_url = last_url
                 draw_text(26,2,textbox_url)
                 load_webpage(textbox_url)
     elif URL.startswith("$"):
@@ -424,6 +456,7 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                     if editing_textbox:
                         link_clicked(textbox_url)
                     elif not editing_textbox and not in_console and not viewing_source and selected_interaction_point != -1:
+                        last_url = textbox_url
                         current_webpage_offset = 0
                         textbox_url = interaction_points[selected_interaction_point][2][0]
                         draw_text(26,2,textbox_url)
@@ -441,21 +474,42 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                         draw_text(26,2,textbox_url)
                         update_ui(2,1)
                 case "KEY_DOWN":
-                    if not editing_textbox:
+                    if not editing_textbox and not in_console:
                         if current_webpage_offset < len(current_webpage_formatted):
                             current_webpage_offset += 1
                             draw_webpage()
+                    elif not editing_textbox and in_console:
+                        if current_console_offset < len(console_text):
+                            current_console_offset += 1
+                            draw_console()
                 case "KEY_UP":
-                    if not editing_textbox:
+                    if not editing_textbox and not in_console:
                         if current_webpage_offset != 0:
                             current_webpage_offset -= 1
                             draw_webpage()
+                    elif not editing_textbox and in_console:
+                         if current_console_offset != 0:
+                            current_console_offset -= 1
+                            draw_console()
                 case "KEY_TAB":
                     if not editing_textbox and not in_console and not viewing_source:
+                        last_interaction_point = selected_interaction_point
+                        if last_interaction_point == -1:
+                            last_interaction_point = 0
+                            
                         selected_interaction_point += 1
-                        if selected_interaction_point > len(interaction_points):
-                            selected_interaction_point = -1
-
+                        if selected_interaction_point > len(interaction_points)-1:
+                            selected_interaction_point = 0
+                        
+                        
+                        if len(interaction_points) > 1:
+                            interaction_points[last_interaction_point][5] = False
+                            interaction_points[selected_interaction_point][5] = True
+                        elif len(interaction_points) == 1:
+                            interaction_points[selected_interaction_point][5] = not interaction_points[selected_interaction_point][5]
+                            #console_print(str(interaction_points[selected_interaction_point][5]))
+                        
+                        update_interactive_layer()
                 case "KEY_F1":
                     if not editing_textbox:
                         editing_textbox = True
