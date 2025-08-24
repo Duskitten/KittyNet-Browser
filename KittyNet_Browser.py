@@ -30,7 +30,7 @@ viewing_source = False
 
 base_ui_text = [] #This is for the base of the UI
 full_ui_text = []
-
+current_source_formatted = []
 interaction_points = []
 selected_interaction_point = -1
 
@@ -39,6 +39,7 @@ parsed_site_text = []
 original_site_text = []
 console_text = []
 current_console_offset = 0
+current_source_offset = 0
 in_console = False
 
 
@@ -48,11 +49,11 @@ def update_ui(OffsetY, LineTotal):
     global current_console_offset
     global webpage_limits
     
+    
     for i in range(LineTotal):
         print(term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(foreground_color[0],foreground_color[1],foreground_color[2])+term.move_xy(0,OffsetY+i)+full_ui_text[OffsetY+i])
-    
-    update_interactive_layer()
-            #draw_text(0,OffsetY+i,rendered_ui_text[OffsetY+i],[0,0,0],[255,255,255])
+    if not viewing_source:
+        update_interactive_layer()
 
 def update_interactive_layer():
     global current_console_offset
@@ -182,15 +183,29 @@ def reparse_text(text,line):
 
     if linecounter > 0:
         edited_line = " " * int(len(edited_line)/linecounter)
-
+    
+    edited_line_grouped = ""
+    
+    current_line = 0
     for i in range(len(edited_points)):
         split = edited_points[i][3][1:len(edited_points[i][3])-1].split(" ")
-        for splitdata in split:
-            match splitdata:
+        for splitdata in range(len(split)):
+            match split[splitdata]:
                 case "c_line":
-                    edited_points[i][4] += edited_line
-                    if term.width % 2 != 0:
-                        edited_line += " "
+                    current_line += 1
+                    
+                    if term.width % 2 != 0 and linecounter > 1:
+                        if current_line == linecounter:
+                            edited_points[i][4] += edited_line + " "
+                            edited_line_grouped += edited_line + " "
+                        else:
+                            edited_points[i][4] += edited_line
+                            edited_line_grouped += edited_line
+                            
+                    else:
+                        edited_points[i][4] += edited_line
+                        edited_line_grouped += edited_line
+
                 case "c_bold":
                     edited_points[i][4] += term.bold
                 case "c_color_reset":
@@ -198,46 +213,46 @@ def reparse_text(text,line):
                 case "c_reset":
                     edited_points[i][4] += term.normal + term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(background_color[0],background_color[1],background_color[2])
                 case _:
-                    if splitdata.endswith(")"):
-                        if splitdata.startswith("c_on_color("):
-                            data = splitdata[len("c_on_color("):len(splitdata)-1].split(",")
+                    if split[splitdata].endswith(")"):
+                        if split[splitdata].startswith("c_on_color("):
+                            data = split[splitdata][len("c_on_color("):len(split[splitdata])-1].split(",")
                             edited_points[i][4] += term.on_color_rgb(data[0],data[1],data[2])
-                        elif splitdata.startswith("c_color("):
-                            data = splitdata[len("c_color("):len(splitdata)-1].split(",")
+                        elif split[splitdata].startswith("c_color("):
+                            data = split[splitdata][len("c_color("):len(split[splitdata])-1].split(",")
                             edited_points[i][4] += term.color_rgb(data[0],data[1],data[2])
-                        elif splitdata.startswith("c_link("):
-                            data = splitdata[len("c_link("):len(splitdata)-1].replace("(","").replace(")","").split("|")
+                        elif split[splitdata].startswith("c_link("):
+                            data = split[splitdata][len("c_link("):len(split[splitdata])-1].replace("(","").replace(")","").split("|")
                             if term.width % 2 != 0:
                                 if linecounter == 0:
                                     interaction_points.append([line,"Link",data,edited_points[i][0],last_normal_char[i]+2,False])
                                 else:
-                                    interaction_points.append([line,"Link",data,edited_points[i][0],len(edited_line)+last_normal_char[i]-7,False])
+                                    interaction_points.append([line,"Link",data,edited_points[i][0],len(" "+edited_line_grouped)+last_normal_char[i]-7,False])
                             else:
                                 if linecounter == 0:
                                     interaction_points.append([line,"Link",data,edited_points[i][0],last_normal_char[i]+2,False])
                                 else:
-                                    interaction_points.append([line,"Link",data,edited_points[i][0],len(edited_line)+last_normal_char[i]-6,False])
-                        elif splitdata.startswith("c_input("):
-                            data = splitdata[len("c_input("):len(splitdata)-1].replace("(","").replace(")","").split("|")
-                            console_print(data)
+                                    interaction_points.append([line,"Link",data,edited_points[i][0],len(edited_line_grouped)+last_normal_char[i]-6,False])
+                        elif split[splitdata].startswith("c_input("):
+                            data = split[splitdata][len("c_input("):len(split[splitdata])-1].replace("(","").replace(")","").split("|")
+                            #console_print(data)
                             if term.width % 2 != 0:
                                 if linecounter == 0:
                                     interaction_points.append([line,"Input",data,edited_points[i][0],last_normal_char[i]+2,False,""])
                                 else:
-                                    interaction_points.append([line,"Input",data,edited_points[i][0],len(edited_line)+last_normal_char[i]-7,False,""])
+                                    interaction_points.append([line,"Input",data,edited_points[i][0],len(" "+edited_line_grouped)+last_normal_char[i]-7,False,""])
                             else:
                                 if linecounter == 0:
                                     interaction_points.append([line,"Input",data,edited_points[i][0],last_normal_char[i]+2,False,""])
                                 else:
-                                    interaction_points.append([line,"Input",data,edited_points[i][0],len(edited_line)+last_normal_char[i]-6,False,""])
+                                    interaction_points.append([line,"Input",data,edited_points[i][0],len(edited_line_grouped)+last_normal_char[i]-6,False,""])
 
     for i in range(enterpoint_count):
         textline = "{Enter_"+str(i)+"}"
-        
         original_text = original_text.replace(textline, edited_points[i][4])
+
     #print(interaction_points)
     #print(original_text)
-    original_text+= term.normal + term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(background_color[0],background_color[1],background_color[2])
+    original_text += term.normal + term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(background_color[0],background_color[1],background_color[2])
     current_webpage_formatted.append(original_text)
 
 def draw_ui():
@@ -253,17 +268,45 @@ def draw_ui():
 def draw_console():
     draw_ui()
     y_offset = 0
-    for text in range(len(console_text)):
-        text += current_console_offset
-        if text < len(console_text) and y_offset < webpage_limits[3]-2:
-            try:
-                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text].format(term = term))
-            except:
-                draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text])
-            y_offset += 1
-    update_ui(webpage_limits[1],y_offset)
+    
 
 def draw_webpage():
+    global webpage_limits
+    draw_ui()
+    y_offset = 0
+    
+    if in_console:
+        for text in range(len(console_text)):
+            text += current_console_offset
+            if text < len(console_text) and y_offset < webpage_limits[3]-2:
+                try:
+                    draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text].format(term = term))
+                except:
+                    draw_text(webpage_limits[0],webpage_limits[1]+y_offset,console_text[text])
+                y_offset += 1
+    elif viewing_source:
+        for text in range(len(current_source_formatted)):
+            text += current_source_offset
+            if text < len(current_source_formatted) and y_offset < webpage_limits[3]-2:
+                try:
+                    draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_source_formatted[text].format(term = term))
+                except:
+                    draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_source_formatted[text])
+                y_offset += 1
+    else:
+        for text in range(len(current_webpage_formatted)):
+            text += current_webpage_offset
+            if text < len(current_webpage_formatted) and y_offset < webpage_limits[3]-2:
+                try:
+                    draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_webpage_formatted[text].format(term = term))
+                except:
+                    draw_text(webpage_limits[0],webpage_limits[1]+y_offset,current_webpage_formatted[text])
+                y_offset += 1
+    
+
+    update_ui(webpage_limits[1],y_offset)
+    
+def draw_source():
     global webpage_limits
     draw_ui()
     y_offset = 0
@@ -283,23 +326,25 @@ def reload_webpage_from_memory(Webpage):
     global interaction_points
     global current_webpage_formatted
     
+    interaction_points_copy = interaction_points.copy()
+    current_source_formatted.clear()
     interaction_points.clear()
     current_webpage_formatted.clear()
+    
     page = Webpage.splitlines()
     for text in range(len(page)):
         reparse_text(page[text],text)
-    #draw_ui()
-    draw_webpage()
-
-def reload_source_from_memory(Webpage):
-    global interaction_points
-    global current_webpage_formatted
-    
-    interaction_points.clear()
-    current_webpage_formatted.clear()
-    page = Webpage.splitlines()
-    for text in range(len(page)):
-        current_webpage_formatted.append(page[text])
+        current_source_formatted.append(page[text])
+        
+    #console_print(str(interaction_points_copy))
+        
+        
+    for x in range(len(interaction_points)):
+        interaction_points[x][5] = interaction_points_copy[x][5]
+        match interaction_points[x][1]:
+            case "Input":
+                interaction_points[x][6] = interaction_points_copy[x][6]
+        
     #draw_ui()
     draw_webpage()
 
@@ -321,6 +366,7 @@ def load_webpage(URL):
                 textbox_url = last_url
                 draw_text(26,2,textbox_url)
                 load_webpage(textbox_url)
+                draw_webpage()
     elif URL.startswith("$"):
         locked_url = URL
         URL = URL[1:]
@@ -358,16 +404,14 @@ def load_webpage(URL):
 def on_resize(sig, action):
     webpage_limits[2] = term.width-4
     webpage_limits[3] = term.height-7
+    print(term.clear())
 
     if locked_url.startswith("$"):
         URL = locked_url[1:]
         try:
             if os.path.isfile("./"+URL):
                 with open("./"+URL) as f:
-                    if viewing_source:
-                        reload_source_from_memory(f.read())
-                    else:
-                        reload_webpage_from_memory(f.read())
+                    reload_webpage_from_memory(f.read())
             else:
                 raise Exception("")
         except:
@@ -376,10 +420,7 @@ def on_resize(sig, action):
     else:
         if os.path.isfile("./Websites/"+locked_url):
             with open("./Websites/"+locked_url) as f:
-                if viewing_source:
-                    reload_source_from_memory(f.read())
-                else:
-                    reload_webpage_from_memory(f.read())
+                reload_webpage_from_memory(f.read())
         else:
             draw_ui()
             draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: http://"+ locked_url)
@@ -414,6 +455,7 @@ def link_clicked(URL):
     editing_textbox = False
     in_console = False
     viewing_source = False
+    
     load_webpage(URL)
 
 with term.fullscreen(), term.hidden_cursor(), term.cbreak():
@@ -446,13 +488,14 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
     tested = False
     x = 0
 
-    load_webpage(textbox_url)
+    link_clicked(textbox_url)
+    draw_webpage()
 
     while True:
         
         if editing_textbox:
             counter += 1
-            if counter % 20000 == 0:
+            if counter % 4 == 0:
                 counter = 0
                 
                 blink_on =  not blink_on
@@ -466,9 +509,9 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
             
             
         val = ''
-        val = term.inkey(0)
+        val = term.inkey(0.1)
             
-         
+
 
 
         if val.is_sequence:
@@ -501,25 +544,35 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                         draw_text(26,2,textbox_url)
                         update_ui(2,1)
                 case "KEY_DOWN":
-                    if not editing_textbox and not in_console:
-                        if current_webpage_offset < len(current_webpage_formatted):
-                            current_webpage_offset += 1
-                            draw_webpage()
-                    elif not editing_textbox and in_console:
-                        if current_console_offset < len(console_text):
-                            current_console_offset += 1
-                            draw_console()
+                    if not editing_textbox:
+                        if viewing_source:
+                            if current_source_offset < len(current_source_formatted):
+                                current_source_offset += 1
+                                draw_webpage()
+                        elif in_console:
+                            if current_console_offset < len(console_text):
+                                current_console_offset += 1
+                                draw_webpage()
+                        else:
+                            if current_webpage_offset < len(current_webpage_formatted):
+                                current_webpage_offset += 1
+                                draw_webpage()
                 case "KEY_UP":
-                    if not editing_textbox and not in_console:
-                        if current_webpage_offset != 0:
-                            current_webpage_offset -= 1
-                            draw_webpage()
-                    elif not editing_textbox and in_console:
-                         if current_console_offset != 0:
-                            current_console_offset -= 1
-                            draw_console()
+                    if not editing_textbox:
+                        if viewing_source:
+                            if current_source_offset != 0:
+                                current_source_offset -= 1
+                                draw_webpage()
+                        elif in_console:
+                             if current_console_offset != 0:
+                                current_console_offset -= 1
+                                draw_webpage()
+                        else:
+                            if current_webpage_offset != 0:
+                                current_webpage_offset -= 1
+                                draw_webpage()
                 case "KEY_TAB":
-                    if not editing_textbox and not in_console and not viewing_source:
+                    if not editing_textbox and not in_console and not viewing_source and len(interaction_points) > 0:
                         last_interaction_point = selected_interaction_point
                         if last_interaction_point == -1:
                             last_interaction_point = 0
@@ -545,20 +598,12 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
 
                 case "KEY_F2":
                    if not editing_textbox:
-                        if viewing_source:
-                            viewing_source = False
-                            on_resize(1,1)
-                        else:
-                            viewing_source = True
-                            on_resize(1,1)
+                        viewing_source = not viewing_source
+                        draw_webpage()
                 case "KEY_F3":
                    if not editing_textbox:
-                        if in_console:
-                            in_console = False
-                            on_resize(1,1)
-                        else:
-                            in_console = True
-                            draw_console()
+                        in_console = not in_console
+                        draw_webpage()
         elif val:
             match val:
                 case "`":
