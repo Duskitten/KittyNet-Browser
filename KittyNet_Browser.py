@@ -44,15 +44,24 @@ in_console = False
 
 def update_ui(OffsetY, LineTotal):
     global full_ui_text
+    global current_console_offset
+    global webpage_limits
+    
     for i in range(LineTotal):
         print(term.on_color_rgb(background_color[0],background_color[1],background_color[2]) + term.color_rgb(foreground_color[0],foreground_color[1],foreground_color[2])+term.move_xy(0,OffsetY+i)+full_ui_text[OffsetY+i])
-    if not editing_textbox and not in_console and not viewing_source:
-        for i in interaction_points:
-            #print(i[4])
-            if i[1] == "Link":
-                print(term.underline(term.blue+term.move_xy(i[4]+2,OffsetY+i[0])+i[2][0]))
+    
+    update_interactive_layer(OffsetY, LineTotal)
             #draw_text(0,OffsetY+i,rendered_ui_text[OffsetY+i],[0,0,0],[255,255,255])
-        
+
+def update_interactive_layer(OffsetY, LineTotal):
+    global current_console_offset
+    global webpage_limits
+    if not editing_textbox and not in_console and not viewing_source:
+        for i in range(len(interaction_points)):
+            if interaction_points[i][0]+(-1*current_webpage_offset)+6 < webpage_limits[3]+4 and interaction_points[i][0]+(-1*current_webpage_offset)+6 > webpage_limits[1]-1:
+                if interaction_points[i][1] == "Link":
+                    print(term.underline(term.blue+term.move_xy(interaction_points[i][4]+3,interaction_points[i][0]+(-1*current_webpage_offset)+6)+interaction_points[i][2][0]))
+
 
 #This is how we output text with some customizing!
 def draw_text(PosX, PosY, Text):
@@ -164,9 +173,6 @@ def reparse_text(text,line):
                         if splitdata.startswith("c_on_color("):
                             data = splitdata[len("c_on_color("):len(splitdata)-1].split(",")
                             edited_points[i][4] += term.on_color_rgb(data[0],data[1],data[2])
-                        elif splitdata.startswith("c_on_color("):
-                            data = splitdata[len("c_on_color("):len(splitdata)-1].split(",")
-                            edited_points[i][4] += term.on_color_rgb(data[0],data[1],data[2])
                         elif splitdata.startswith("c_color("):
                             data = splitdata[len("c_color("):len(splitdata)-1].split(",")
                             edited_points[i][4] += term.color_rgb(data[0],data[1],data[2])
@@ -247,7 +253,7 @@ def reload_source_from_memory(Webpage):
     current_webpage_formatted.clear()
     page = Webpage.splitlines()
     for text in range(len(page)):
-        reparse_text(page[text],text)
+        current_webpage_formatted.append(page[text])
     #draw_ui()
     draw_webpage()
 
@@ -418,6 +424,7 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                     if editing_textbox:
                         link_clicked(textbox_url)
                     elif not editing_textbox and not in_console and not viewing_source and selected_interaction_point != -1:
+                        current_webpage_offset = 0
                         textbox_url = interaction_points[selected_interaction_point][2][0]
                         draw_text(26,2,textbox_url)
                         update_ui(2,1)
