@@ -16,6 +16,9 @@
 
 [c_on_color(120,120,255) c_line]
 
+[c_line][c_scroll(Hello%sand%swelcome%sto%smy%ssite!%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s|(255,255,255)|(0,0,0))]Hello and welcome to my site!                    [c_line]
+
+
 [c_line]KittyNet is a free and open source project[c_line]
 [c_line]with the goal of making a whole new internet![c_line]
 

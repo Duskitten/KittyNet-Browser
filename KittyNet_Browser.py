@@ -40,6 +40,7 @@ original_site_text = []
 console_text = []
 current_console_offset = 0
 current_source_offset = 0
+scroll_counter = 0
 in_console = False
 
 
@@ -83,6 +84,10 @@ def update_interactive_layer():
                             print(term.on_color_rgb(normal_on_color[0],normal_on_color[1],normal_on_color[2])+term.color_rgb(normal_color[0],normal_color[1],normal_color[2])+term.move_xy(interaction_points[i][4],interaction_points[i][0]+(-1*current_webpage_offset)+6)+interaction_points[i][2][0]+interaction_points[i][6])
                         case True:
                             print(term.on_color_rgb(selected_on_color[0],selected_on_color[1],selected_on_color[2])+term.color_rgb(selected_color[0],selected_color[1],selected_color[2])+term.move_xy(interaction_points[i][4],interaction_points[i][0]+(-1*current_webpage_offset)+6)+interaction_points[i][2][0]+interaction_points[i][6])
+                elif interaction_points[i][1] == "Scroll":
+                    normal_color = interaction_points[i][2][1].split(",")
+                    normal_on_color = interaction_points[i][2][2].split(",")
+                    print(term.on_color_rgb(normal_on_color[0],normal_on_color[1],normal_on_color[2])+term.color_rgb(normal_color[0],normal_color[1],normal_color[2])+term.move_xy(interaction_points[i][4],interaction_points[i][0]+(-1*current_webpage_offset)+6)+interaction_points[i][2][0])
 
 
 #This is how we output text with some customizing!
@@ -245,6 +250,19 @@ def reparse_text(text,line):
                                     interaction_points.append([line,"Input",data,edited_points[i][0],last_normal_char[i]+2,False,""])
                                 else:
                                     interaction_points.append([line,"Input",data,edited_points[i][0],len(edited_line_grouped)+last_normal_char[i]-6,False,""])
+                        elif split[splitdata].startswith("c_scroll("):
+                            data = split[splitdata][len("c_scroll("):len(split[splitdata])-1].replace("(","").replace(")","").split("|")
+                            data[0] = data[0].replace("%s"," ")
+                            if term.width % 2 != 0:
+                                if linecounter == 0:
+                                    interaction_points.append([line,"Scroll",data,edited_points[i][0],last_normal_char[i]+2,False])
+                                else:
+                                    interaction_points.append([line,"Scroll",data,edited_points[i][0],len(" "+edited_line_grouped)+last_normal_char[i]-7,False])
+                            else:
+                                if linecounter == 0:
+                                    interaction_points.append([line,"Scroll",data,edited_points[i][0],last_normal_char[i]+2,False,0])
+                                else:
+                                    interaction_points.append([line,"Scroll",data,edited_points[i][0],len(edited_line_grouped)+last_normal_char[i]-6,False])
 
     for i in range(enterpoint_count):
         textline = "{Enter_"+str(i)+"}"
@@ -353,7 +371,6 @@ def load_webpage(URL):
     global locked_url
     global textbox_url
     global last_url
-    
     core_url = URL
     if URL.startswith("--"):
         match URL.lower():
@@ -391,7 +408,7 @@ def load_webpage(URL):
             if response.text:
                 console_print("Connection Successful")
                 locked_url = URL
-                with open("./Websites/"+URL, "w") as f:
+                with open("./Websites/"+URL.replace("/","@"), "w") as f:
                     f.write(response.text)
                 reload_webpage_from_memory(response.text)
         except requests.exceptions.RequestException:
@@ -418,8 +435,8 @@ def on_resize(sig, action):
             draw_ui()
             draw_text(webpage_limits[0],webpage_limits[1],"Error Path Invalid: ./"+ URL)
     else:
-        if os.path.isfile("./Websites/"+locked_url):
-            with open("./Websites/"+locked_url) as f:
+        if os.path.isfile("./Websites/"+locked_url.replace("/","@")):
+            with open("./Websites/"+locked_url.replace("/","@")) as f:
                 reload_webpage_from_memory(f.read())
         else:
             draw_ui()
@@ -506,7 +523,16 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
 
                 draw_text(26+len(textbox_url),2,blink)
                 update_ui(2,1)
-            
+                
+        scroll_counter += 1
+        if scroll_counter > 0:
+            scroll_counter = 0
+            for i in range(len(interaction_points)):
+                if interaction_points[i][1] == "Scroll":
+                    interaction_points[i][2][0] = interaction_points[i][2][0][-1:]+interaction_points[i][2][0][:-1]
+               # interaction_points[i][2][0] = 
+                
+        update_interactive_layer()
             
         val = ''
         val = term.inkey(0.1)
@@ -574,13 +600,22 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                 case "KEY_TAB":
                     if not editing_textbox and not in_console and not viewing_source and len(interaction_points) > 0:
                         last_interaction_point = selected_interaction_point
+                        
+                            
                         if last_interaction_point == -1:
                             last_interaction_point = 0
                             
                         selected_interaction_point += 1
+                        
+                        
                         if selected_interaction_point > len(interaction_points)-1:
                             selected_interaction_point = 0
                         
+                        while interaction_points[selected_interaction_point][1] == "Scroll":
+                            selected_interaction_point += 1
+                        
+                        if selected_interaction_point > len(interaction_points)-1:
+                            selected_interaction_point = 0
                         
                         if len(interaction_points) > 1:
                             interaction_points[last_interaction_point][5] = False
