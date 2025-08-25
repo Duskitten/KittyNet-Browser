@@ -10,8 +10,6 @@ Use Arrow Keys "UP" and "DOWN" to scroll the browser!
 All modifiers should be marked with "/[" and end with "]".
 Add "/" to beginning of command to break it for visual reference.
 
-
-
 [c_bold c_on_color(20,50,194)]- c_line[c_line]
 [c_reset c_color(255,255,255)]    -- Generates a new line break, or can be used to center/move content.[c_reset]
 [c_reset c_color(255,255,255)]    -- Advised to use in tandem with [c_bold c_on_color(20,50,194)] c_on_color [c_reset c_color(255,255,255)] for a colored bar.
@@ -32,5 +30,16 @@ Add "/" to beginning of command to break it for visual reference.
 [c_reset c_color(255,255,255)]    -- resets the text line to base app default.
 
 [c_bold c_on_color(20,50,194)]- c_link(URL|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B))[c_line]
+[c_reset c_color(255,255,255)]    -- *URL requires %s for spaces to be parsed ex: some%swords = some words
 [c_reset c_color(255,255,255)]    -- URL, Foreground, Background, Selected Foreground, Selected Background
 [c_reset c_color(255,255,255)]    -- It is advised to reserve the space for URL by typing immediately after the "]"
+
+[c_bold c_on_color(20,50,194)]- c_input(TEXT|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B))[c_line]
+[c_reset c_color(255,255,255)]    -- *TEXT requires %s for spaces to be parsed ex: some%swords = some words
+[c_reset c_color(255,255,255)]    -- Text, Foreground, Background, Selected Foreground, Selected Background, Text Foreground, Text Background
+[c_reset c_color(255,255,255)]    -- It is advised to reserve the space for URL by typing immediately after the "]"
+
+[c_bold c_on_color(20,50,194)]- c_scroll(TEXT|(R,G,B)|(R,G,B))[c_line]
+[c_reset c_color(255,255,255)]    -- *TEXT requires %s for spaces to be parsed ex: some%swords = some words
+[c_reset c_color(255,255,255)]    -- Text, Foreground, Background
+[c_reset c_color(255,255,255)]    -- It is advised to reserve the space for Text by typing immediately after the "]"

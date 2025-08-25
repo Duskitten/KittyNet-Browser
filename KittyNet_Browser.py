@@ -59,7 +59,7 @@ def update_ui(OffsetY, LineTotal):
 def update_interactive_layer():
     global current_console_offset
     global webpage_limits
-    if not editing_textbox and not in_console and not viewing_source:
+    if not in_console and not viewing_source:
         for i in range(len(interaction_points)):
             if interaction_points[i][0]+(-1*current_webpage_offset)+6 < webpage_limits[3]+4 and interaction_points[i][0]+(-1*current_webpage_offset)+6 > webpage_limits[1]-1:
                 if interaction_points[i][1] == "Link":
@@ -355,13 +355,14 @@ def reload_webpage_from_memory(Webpage):
         current_source_formatted.append(page[text])
         
     #console_print(str(interaction_points_copy))
-        
-        
-    for x in range(len(interaction_points)):
-        interaction_points[x][5] = interaction_points_copy[x][5]
-        match interaction_points[x][1]:
-            case "Input":
-                interaction_points[x][6] = interaction_points_copy[x][6]
+
+    if last_url == Webpage:
+        for x in range(len(interaction_points)):
+            interaction_points[x][5] = interaction_points_copy[x][5]
+            match interaction_points[x][1]:
+                case "Input":
+                    interaction_points[x][6] = interaction_points_copy[x][6]
+                    interaction_points[x][1][0] = interaction_points_copy[x][1][0]
         
     #draw_ui()
     draw_webpage()
@@ -531,19 +532,18 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                 if interaction_points[i][1] == "Scroll":
                     interaction_points[i][2][0] = interaction_points[i][2][0][-1:]+interaction_points[i][2][0][:-1]
                # interaction_points[i][2][0] = 
-                
         update_interactive_layer()
             
         val = ''
         val = term.inkey(0.1)
-            
-
-
-
+        
+        
         if val.is_sequence:
             match val.name:
                 case "KEY_ENTER":
                     if editing_textbox:
+                        current_webpage_offset = 0
+                        selected_interaction_point = -1
                         link_clicked(textbox_url)
                     elif not editing_textbox and not in_console and not viewing_source and selected_interaction_point != -1:
                         match interaction_points[selected_interaction_point][1]:
@@ -558,6 +558,7 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                         
                 case "KEY_BACKSPACE":
                     if not editing_textbox and not in_console and not viewing_source:
+                        if len(interaction_points) > 0:
                             match interaction_points[selected_interaction_point][1]:
                                 case "Input":
                                     interaction_points[selected_interaction_point][6] = (interaction_points[selected_interaction_point][6])[:-1]
@@ -645,14 +646,16 @@ with term.fullscreen(), term.hidden_cursor(), term.cbreak():
                     pass
 
             if editing_textbox:
-                textbox_url += val
+                textbox_url += str(val)
                 draw_text(26,2,textbox_url)
                 draw_text(26+len(textbox_url),2,blink_char)
                 update_ui(2,1)
             
-            if not editing_textbox and not in_console and not viewing_source:
-                    match interaction_points[selected_interaction_point][1]:
-                        case "Input":
-                            interaction_points[selected_interaction_point][6] += val
-                            update_interactive_layer()
+            if not in_console and not viewing_source:
+                if selected_interaction_point != -1:
+                    if len(interaction_points) > 0:
+                        match interaction_points[selected_interaction_point][1]:
+                            case "Input":
+                                interaction_points[selected_interaction_point][6] += val
+                                update_interactive_layer()
         
