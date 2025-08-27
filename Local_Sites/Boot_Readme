@@ -1,40 +1,39 @@
-[c_on_color(120,120,255) c_line]
+[oncolor_purple center]
 
-[c_line]Meow Meow! WELCOME TO KITTYNET![c_line]
-[c_line]V[c_line]
+[center]Meow Meow! WELCOME TO KITTYNET!
+[center]V
+[center]
+[center]                    ████      
+[center]                  ██  ██      
+[center]██████████      ██    ██      
+[center]██      ████████████  ██      
+[center]  ██  ██            ████      
+[center]    ████  ██    ██  ██    ██  
+[center]      ██  ██    ██  ██  ██  ██
+[center]      ██            ██  ██    
+[center]      ██            ██  ██    
+[center]        ████████████████      
 
-[c_line]                    ████      [c_line]
-[c_line]                  ██  ██      [c_line]
-[c_line]██████████      ██    ██      [c_line]
-[c_line]██      ████████████  ██      [c_line]
-[c_line]  ██  ██            ████      [c_line]
-[c_line]    ████  ██    ██  ██    ██  [c_line]
-[c_line]      ██  ██    ██  ██  ██  ██[c_line]
-[c_line]      ██            ██  ██    [c_line]
-[c_line]      ██            ██  ██    [c_line]
-[c_line]        ████████████████      [c_line]
+[oncolor_purple center]
 
-[c_on_color(120,120,255) c_line]
-
-[c_line][c_scroll(Hello%sand%swelcome%sto%smy%ssite!%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s|(255,255,255)|(0,0,0))]Hello and welcome to my site!                    [c_line]
+[center oncolor_white color_black scroll]Hello and welcome to my site![no_scroll]
 
 
-[c_line]KittyNet is a free and open source project[c_line]
-[c_line]with the goal of making a whole new internet![c_line]
+[center]KittyNet is a free and open source project
+[center]with the goal of making a whole new internet!
 
-[c_line]To start, press the "F1" key to search in the URL Bar![c_line]
-[c_line]The "F2" key allows for you to view the source of pages![c_line]
-[c_line]The "F3" key allows for you to view the debug output in the console![c_line]
+[center]To start, press the "F1" key to search in the URL Bar!
+[center]The "F2" key allows for you to view the source of pages!
+[center]The "F3" key allows for you to view the debug output in the console!
 
-[c_line]Use the $ for local files relative to this .py file![c_line]
-[c_line]o.wo[c_line]12asdsf3[c_line]
+[center]Use the $ for local files relative to this .py file!
 
-[c_line][c_link(o.wo|(94,151,255)|(0,0,0)|(0,0,0)|(94,151,255))]o.wo[c_line]12asdswf3[c_line]
+[link]o.wo[no_link]
 
-[c_line][c_bold c_input(URL:|(255,255,255)|(0,0,0)|(0,0,0)|(255,255,255)|(0,0,0)|(255,255,255),"Name")][c_reset c_color(255,255,255)]URL:                 [c_line]
-[c_line][c_bold c_input(Test?:|(255,255,255)|(0,0,0)|(0,0,0)|(255,255,255)|(0,0,0)|(255,255,255),"Name")][c_reset c_color(255,255,255)]Test?:                 [c_line]
+[bold input]URL:   [no_input]              
+[bold input]Test?: [no_input]                  
 
-[c_line]To find documentation for your own site, go to [c_bold c_link($Local_Sites/Documentation|(94,151,255)|(0,0,0)|(0,0,0)|(94,151,255))][c_reset c_color(255,255,255)]$Local_Sites/Documentation[c_line]
-[c_line]By pressing tab to select, then enter![c_line]
+[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[no_link]
+By pressing tab to select, then enter!
 
-[c_on_color(120,120,255) c_line]
+[oncolor_purple center]

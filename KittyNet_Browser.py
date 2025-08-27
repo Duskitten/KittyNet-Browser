@@ -1,3 +1,4 @@
+from enum import Enum
 import blessed
 import time
 import requests
@@ -14,20 +15,6 @@ RYB_Colors = {
     "black":[0,0,0],
     "white":[255,255,255],
     
-    "gray":[128,128,128],
-    "red":[254, 39, 18],
-    "red_orange":[252, 96, 10],
-    "orange":[251, 153, 2],
-    "yellow_orange":[252, 204, 26],
-    "yellow":[254, 254, 51],
-    "yellow_green":[178, 215, 50],
-    "green":[102, 176, 50],
-    "blue_green":[52, 124, 152],
-    "blue":[2, 71, 254],
-    "blue_purple":[68, 36, 214],
-    "purple":[134, 1, 175],
-    "red_purple":[194, 20, 96],
-    
     "dark_gray":[77,77,77],
     "dark_red":[163,15,1],
     "dark_red_orange":[155, 57, 2],
@@ -41,6 +28,20 @@ RYB_Colors = {
     "dark_blue_purple":[42,22,128],
     "dark_purple":[82,1,105],
     "dark_red_purple":[116,12,56],
+    
+    "gray":[128,128,128],
+    "red":[254, 39, 18],
+    "red_orange":[252, 96, 10],
+    "orange":[251, 153, 2],
+    "yellow_orange":[252, 204, 26],
+    "yellow":[254, 254, 51],
+    "yellow_green":[178, 215, 50],
+    "green":[102, 176, 50],
+    "blue_green":[52, 124, 152],
+    "blue":[2, 71, 254],
+    "blue_purple":[68, 36, 214],
+    "purple":[134, 1, 175],
+    "red_purple":[194, 20, 96],
     
     "pastel_gray":[179,179,179],
     "pastel_red":[254,125,113],
@@ -90,15 +91,39 @@ config_data = {
     "use_custom_char":"█",
 
     #Navigation
-    "scroll_up":"up",
-    "scroll_down":"down",
-    "toggle_urlbar":"f1",
-    "toggle_source":"f2",
-    "toggle_console":"f3",
-    "toggle_back":"f4",
-    "toggle_reload":"f5"
-    
+    "key_scroll_up":"up",
+    "key_scroll_down":"down",
+    "key_toggle_urlbar":"f1",
+    "key_toggle_source":"f2",
+    "key_toggle_console":"f3",
+    "key_toggle_back":"f4",
+    "key_toggle_reload":"f5",
+    "key_interact=enter":"enter"
     }
+
+current_url = ""
+
+##Prebuilt variables
+url_text = "  URL:"+current_url
+kitty_text = ""
+edge_text =  ""
+keybinds_text = ""
+full_line = ""
+sectioned_line = ""
+kitty_line = ""
+fill_line = ""
+
+
+viewport_size = [3,6]
+
+class viewport(Enum):
+    default = 0
+    url = 1
+    source = 2
+    console = 3
+    
+viewport_mode = 0
+
 def on_resize(sig, action):
     redraw()
 
@@ -109,16 +134,15 @@ def color_test():
     compiled_string = ""
     for y in range(len(values)):
         if y == 2:
-         compiled_string += term.move_xy(2,9)
+            compiled_string += term.move_xy(3,8)
         elif y == 15:
-             compiled_string += term.move_xy(2,11)
+            compiled_string += term.move_xy(3,10)
         elif y == 28:
-             compiled_string += term.move_xy(2,13)
+            compiled_string += term.move_xy(3,12)
         compiled_string += str(compile_color(str(values[y]),"oncolor_"))+"  "
         
         
-    print(term.move_xy(2,7) + compiled_string)
-        
+    return str(term.move_xy(2,6) + compiled_string +term.normal)
 
 def compile_color(input_color,color_type):
     global command_tags
@@ -133,19 +157,22 @@ def compile_color(input_color,color_type):
             return term.color_rgb(RYB_Colors[config_data["default_foreground_color"]][0],RYB_Colors[config_data["default_foreground_color"]][1],RYB_Colors[config_data["default_foreground_color"]][2])
 
 def redraw():
+    global keybinds_text
+    global kitty_text
+    global edge_text
+    global full_line 
+    global sectioned_line
+    global kitty_line
+    global fill_line
+    global config_data
+    
     default_colors = compile_color("",command_tags[5])+compile_color("",command_tags[7])
-    compiled_line = default_colors
-    kitty_text = ""
-    edge_text =  ""
-    keybinds_text = ""
-    full_line = ""
-    sectioned_line = ""
-    kitty_line = ""
-    fill_line = ""
+    compiled_line = term.clear + default_colors
+    
     
     if config_data["use_panels"]:
         keybinds_text = "┤ F1:URL Bar | F2:Toggle Source | F3:Toggle Console | F4:Back Page | F5:Reload Page ├"
-        kitty_text = "  KittyNet "+version+"  │"
+        kitty_text = "  KittyNet "+version+"  │"  
         edge_text =  " " * (len(kitty_text)-1) +"│"
         full_line = "─" * (term.width)
         sectioned_line = "│" + (" " * (term.width -2))+"│"
@@ -164,7 +191,7 @@ def redraw():
         if Y == 0 or Y == term.height-2 or Y == 4:
             compiled_line += term.move_xy(0,Y)+full_line
         elif Y == 2:
-            compiled_line += term.move_xy(0,Y)+kitty_line
+            compiled_line += term.move_xy(0,Y) + kitty_line
         elif Y == 1 or Y == 3:
             compiled_line += term.move_xy(0,Y)+fill_line
         else:
@@ -181,7 +208,10 @@ def redraw():
         compiled_line += term.move_xy(0,term.height-2)+"└"
         compiled_line += term.move_xy(term.width-1,4)+"┤"
         compiled_line += term.move_xy(term.width-1,term.height-2)+"┘"
+        
+    compiled_line += term.move_xy(len(kitty_text)+2,2)+url_text
     
+    compiled_line+=color_test()
     
     print(compiled_line)
     
@@ -202,11 +232,62 @@ def initial_setup():
                     else:
                         config_data[data[0]] = data[1]
 
+def input_check(value):
+    global viewport_mode
+    global current_url
+    
+    if viewport_mode == viewport.url:
+        if value == config_data["key_interact"]:
+            viewport_mode = viewport.default
+            return
+        elif value == "backspace":
+            current_url = current_url[:-1]
+            url_text = "  URL:"+current_url+" "
+        else:
+            if len(value) == 1:
+                current_url += value
+                url_text = "  URL:"+current_url
+            else:
+                return
+        
+        default_colors = compile_color("",command_tags[5])+compile_color("",command_tags[7])
+        compiled_line = default_colors+term.move_xy(len(kitty_text)+2,2)+url_text
+        print(compiled_line)
+        return
+        
+    
+    
+    
+    
+    if value == config_data["key_scroll_up"]:
+        print(value)
+    elif value == config_data["key_scroll_down"]:
+        print(value)
+    elif value == config_data["key_toggle_urlbar"]:
+        if viewport_mode != viewport.url:
+            viewport_mode = viewport.url
+    elif value == config_data["key_toggle_source"]:
+        print(value)
+    elif value == config_data["key_toggle_console"]:
+        print(value)
+    elif value == config_data["key_toggle_back"]:
+        print(value)
+    elif value == config_data["key_toggle_reload"]:
+        print(value)
+
 with term.cbreak(), term.hidden_cursor(), term.fullscreen():
     initial_setup()
     redraw()
-    color_test()
-    
     while True:
-        term.inkey(timeout=.1)
-        
+        value = ""
+        keyval = term.inkey(timeout=.1)
+        if keyval:
+            if keyval.is_sequence:
+                value = keyval.name.replace("KEY_","").lower()
+            else:
+                value = keyval
+           
+            input_check(value)
+                
+            
+            
