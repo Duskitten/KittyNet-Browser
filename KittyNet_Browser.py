@@ -68,23 +68,20 @@ command_tags = [
     "oncolor_",
     "no_oncolor",
     "scroll",
-    "no_scroll",
     "link",
-    "no_link",
     "input",
-    "no_input",
     "underline",
-    "no_underline",
     "bold",
-    "no_bold",
     "blink",
-    "no_blink"
 ]
 
 config_data = {
     #Colors
     "default_background_color":"black",
     "default_foreground_color":"white",
+    "default_link_foreground":"default",
+    "default_link_background":"default",
+
 
     #UI
     "use_panels":False,
@@ -98,10 +95,18 @@ config_data = {
     "key_toggle_console":"f3",
     "key_toggle_back":"f4",
     "key_toggle_reload":"f5",
-    "key_interact=enter":"enter"
+    "key_interact=enter":"enter",
+
+    #Bootup
+    "homepage":"$Local_Sites/Boot_Readme"
     }
 
+##Website Stuff
 current_url = ""
+url_history = []
+current_site = ""
+current_parsed_page = []
+scroll_offset = 0
 
 ##Prebuilt variables
 url_text = "  URL:"+current_url
@@ -112,7 +117,7 @@ full_line = ""
 sectioned_line = ""
 kitty_line = ""
 fill_line = ""
-
+default_colors = ""
 
 viewport_size = [3,6]
 
@@ -166,8 +171,7 @@ def redraw():
     global fill_line
     global config_data
     
-    default_colors = compile_color("",command_tags[5])+compile_color("",command_tags[7])
-    compiled_line = term.clear + default_colors
+    compiled_line = default_colors
     
     
     if config_data["use_panels"]:
@@ -187,8 +191,8 @@ def redraw():
         kitty_line = config_data["use_custom_char"]+kitty_text + (" " * (term.width -2 -len(kitty_text)))+config_data["use_custom_char"]
         fill_line = config_data["use_custom_char"]+edge_text + (" " * (term.width -2 -len(edge_text)))+config_data["use_custom_char"]
     
-    for Y in range(term.height-1):
-        if Y == 0 or Y == term.height-2 or Y == 4:
+    for Y in range(term.height):
+        if Y == 0 or Y == term.height-1 or Y == 4:
             compiled_line += term.move_xy(0,Y)+full_line
         elif Y == 2:
             compiled_line += term.move_xy(0,Y) + kitty_line
@@ -197,7 +201,7 @@ def redraw():
         else:
             compiled_line += sectioned_line
             
-    compiled_line += term.move_xy(3,term.height-2)+keybinds_text
+    compiled_line += term.move_xy(3,term.height-1)+keybinds_text
     # ┐└ ┘ ┌ ┴ ┬ │ ─ ┼ ┤ ├
     if config_data["use_panels"]:
         compiled_line += term.move_xy(0,0)+"┌"
@@ -205,9 +209,9 @@ def redraw():
         compiled_line += term.move_xy(term.width-1,0)+"┐"
         compiled_line += term.move_xy(len(kitty_text),0)+"┬"
         compiled_line += term.move_xy(len(kitty_text),4)+"┴"
-        compiled_line += term.move_xy(0,term.height-2)+"└"
+        compiled_line += term.move_xy(0,term.height-1)+"└"
         compiled_line += term.move_xy(term.width-1,4)+"┤"
-        compiled_line += term.move_xy(term.width-1,term.height-2)+"┘"
+        compiled_line += term.move_xy(term.width-1,term.height-1)+"┘"
         
     compiled_line += term.move_xy(len(kitty_text)+2,2)+url_text
     
@@ -216,6 +220,7 @@ def redraw():
     print(compiled_line)
     
 def initial_setup():
+    global default_colors
     if os.path.exists(script_directory+"/KittyNet.config"):
         with open(script_directory+"/KittyNet.config") as f:
             thisfile = f.read()
@@ -232,13 +237,132 @@ def initial_setup():
                     else:
                         config_data[data[0]] = data[1]
 
+    default_colors = compile_color("",command_tags[5])+compile_color("",command_tags[7])
+
+def parse_url():
+    global current_url
+
+    if current_url.startswith("$"):
+        new_text = current_url.replace("$","./")
+        if os.path.isfile(new_text):
+            with open(new_text) as f:
+                parse_manager(f.read())
+
+    elif url_text.startswith("--"):
+        ###Command URL
+        pass
+    elif url_text.startswith("!"):
+        ###Config URL
+        pass
+    else:
+        ###Regular Url
+        pass
+
+def parse_manager(currentpage):
+    for x in currentpage.splitlines():
+        parse_by_line(x)
+
+    parse_display()
+
+
+def parse_display():
+    global current_parsed_page
+    global scroll_offset
+
+    total_line = default_colors
+    parse_offset = 0
+
+    for x in range(len(current_parsed_page)):
+        x += scroll_offset
+
+        if x < len(current_parsed_page):
+
+            current_text =  current_parsed_page[x]["empty_text"]
+            while len(current_text) > term.width - 6:
+                total_line += term.move_xy(3,6+parse_offset) + current_text[:-(term.width-6)]
+                current_text = current_text[:(term.width-6)]
+
+                parse_offset += 1
+
+            if parse_offset+6 > term.height - 3:
+
+                break
+        else:
+
+            break
+
+
+        patch_left = ""
+        patch_right = ""
+        match current_parsed_page[x]["alignment"]:
+            case "left":
+                patch_right = " " * ((term.width - 6) - len(current_text))
+            case "right":
+                patch_left = " " * ((term.width - 6) - len(current_text))
+            case "center":
+                patch_right = " " * int(((term.width - 6) - len(current_text))/2)
+                if term.width % 2 != 0 or len(current_text) % 2 != 0:
+                    patch_left = " " * int(((term.width - 6) - len(current_text))/2) + " "
+                else:
+                    patch_left = " " * int(((term.width - 6) - len(current_text))/2)
+
+
+        total_line += term.move_xy(3,6+parse_offset) + patch_left + current_text + patch_right
+        parse_offset += 1
+
+    total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6) - len(current_text)))
+    print(total_line)
+
+
+def parse_by_line(textline):
+    global current_parsed_page
+    return_text = ""
+    modded_text = textline
+    stripped_text = textline
+    empty_text = textline
+    codes = []
+    ModPoint = 0
+
+
+    for x in range(len(modded_text)):
+        char = modded_text[x]
+        if char == "[" and modded_text[x-1] != "\\":
+            position = 0
+            for i in range(len(modded_text)-x):
+                i+=1
+                if modded_text[x + i] == "]":
+                    position = i+1
+                    key = "{Key_"+str(ModPoint)+"}"
+                    codes.append([ModPoint,x,modded_text[x:x + position],key])
+                    stripped_text = stripped_text.replace(modded_text[x:x + position],key,1)
+                    empty_text = empty_text.replace(modded_text[x:x+position],"",1)
+                    ModPoint += 1
+                    #return_text += str(modded_text[x:x + position]) +"\n"
+                    #print(default_colors+modded_text[x + i])
+                    break
+
+    if empty_text.replace(" ","") == "":
+        empty_text = " " * (term.width -6)
+
+    current_parsed_page.append({
+        "codes":codes,
+        "stripped_text": stripped_text,
+        "empty_text":empty_text,
+        "alignment":"center"
+        })
+
+def clamp(n, smallest, largest): return max(smallest, min(n, largest))
+
 def input_check(value):
+    global scroll_offset
     global viewport_mode
     global current_url
     
     if viewport_mode == viewport.url:
         if value == config_data["key_interact"]:
             viewport_mode = viewport.default
+            current_parsed_page.clear()
+            parse_url()
             return
         elif value == "backspace":
             current_url = current_url[:-1]
@@ -250,8 +374,7 @@ def input_check(value):
             else:
                 return
         
-        default_colors = compile_color("",command_tags[5])+compile_color("",command_tags[7])
-        compiled_line = default_colors+term.move_xy(len(kitty_text)+2,2)+url_text
+
         print(compiled_line)
         return
         
@@ -260,24 +383,40 @@ def input_check(value):
     
     
     if value == config_data["key_scroll_up"]:
-        print(value)
+        if viewport_mode == viewport.default:
+            scroll_offset = clamp(scroll_offset - 1,0,999999999)
+            parse_display()
+        #print(value)
     elif value == config_data["key_scroll_down"]:
-        print(value)
+        if viewport_mode == viewport.default:
+            if len(current_parsed_page) > term.height - 8:
+                scroll_offset = clamp(scroll_offset + 1,0,len(current_parsed_page))
+                parse_display()
+        #print(value)
     elif value == config_data["key_toggle_urlbar"]:
         if viewport_mode != viewport.url:
             viewport_mode = viewport.url
     elif value == config_data["key_toggle_source"]:
-        print(value)
+        pass
+        #print(value)
     elif value == config_data["key_toggle_console"]:
-        print(value)
+        pass
+        #print(value)
     elif value == config_data["key_toggle_back"]:
-        print(value)
+        pass
+        #print(value)
     elif value == config_data["key_toggle_reload"]:
-        print(value)
+        pass
+        #print(value)
 
 with term.cbreak(), term.hidden_cursor(), term.fullscreen():
     initial_setup()
+
+    viewport_mode = viewport.default
+    current_url = config_data["homepage"]
+    url_text = "  URL:"+current_url+" "
     redraw()
+    parse_url()
     while True:
         value = ""
         keyval = term.inkey(timeout=.1)
