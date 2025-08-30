@@ -447,7 +447,6 @@ def input_check(value):
             viewport_mode = viewport.source
         elif viewport_mode == viewport.source:
             viewport_mode = viewport.default
-            
         #print(value)
     elif value == config_data["key_toggle_console"]:
         if viewport_mode == viewport.default:
