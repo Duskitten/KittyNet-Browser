@@ -1,4 +1,3 @@
-
 [oncolor_purple]
 
 [center]Meow     
@@ -19,7 +18,7 @@
 
 [center oncolor_purple]
 
-[center oncolor_white color_black scroll]Hello and [oncolor_dark-red]welcome[oncolor_white] to my site![]
+[center oncolor_white color_black scroll]Hello and welcome to my site!                  
 
 
 [center color_default]KittyNet is a free and open source project
@@ -39,5 +38,3 @@
 [center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
 
 [center oncolor_purple]
-
-[center] Hiii!

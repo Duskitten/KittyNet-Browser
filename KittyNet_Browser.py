@@ -111,6 +111,9 @@ url_history = []
 current_site = ""
 current_parsed_page = []
 scroll_offset = 0
+interaction_point = 0
+interaction_points = []
+scroll_points = []
 
 ##Prebuilt variables
 url_text = "  URL:"+current_url
@@ -308,14 +311,26 @@ def parse_display():
 
         #print(current_parsed_page[x]["alignment"])
         total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)+ default_colors
-        parse_offset += 1
+        
+        for y in range(len(scroll_points)):
+            if scroll_points[y][0]-1 == x:
+                point_a = scroll_points[y][0]-1
+                point_b = scroll_points[y][1]
+            #print(len(current_parsed_page[point_a]["codes"][point_b]))
+                if "scrolled_text" in current_parsed_page[point_a]["codes"][point_b][5]:
+                #print("Hai")
+                    total_line += term.move_xy(len(patch_left)+3+current_parsed_page[point_a]["codes"][point_b][5]["scroll_pos"][0] ,6+parse_offset) + current_parsed_page[point_a]["codes"][point_b][4] +current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"] +default_colors
 
+            
+        parse_offset += 1
+        
     #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
     #print(current_parsed_page[x]["stripped_text"])
     print(total_line)
 
 
 def parse_by_line(textline):
+    global scroll_points
     global current_parsed_page
     return_text = ""
     modded_text = textline
@@ -335,12 +350,15 @@ def parse_by_line(textline):
                 if modded_text[x + i] == "]":
                     position = i+1
                     key = "{Key_"+str(ModPoint)+"}"
-                    codes.append([ModPoint,x,modded_text[x:x + position],key,""])
+                    
                     if ModPoint != 0:
                         stripped_text = stripped_text.replace(modded_text[x:x + position],key,1)
                     else:
                         stripped_text = stripped_text.replace(modded_text[x:x + position],key+"{left_point}",1)
+                        
+                    y = empty_text.find(modded_text[x:x+position])
                     empty_text = empty_text.replace(modded_text[x:x+position],"",1)
+                    codes.append([ModPoint,x,modded_text[x:x + position],key,"",{},y])
                     ModPoint += 1
                     #return_text += str(modded_text[x:x + position]) +"\n"
                     #print(default_colors+modded_text[x + i])
@@ -381,16 +399,36 @@ def parse_by_line(textline):
                     codes[i][4] += compile_color(x[1],x[0])
                 case "oncolor":
                     codes[i][4] += compile_color(x[1],x[0])
+                case "scroll":
+                    codes[i][5]["scroll_pos"] = []
+                    if len(codes) > i+1:
+                        codes[i][5]["scroll_pos"] = [codes[i][6], codes[i+1][6]]
+                    else:
+                        codes[i][5]["scroll_pos"] = [codes[i][6], codes[i][6]+len(empty_text[codes[i][6]:])]
+                    
+                    codes[i][5]["scrolled_text"] = empty_text[codes[i][5]["scroll_pos"][0]:codes[i][5]["scroll_pos"][1]]
+                    scroll_points.append([len(current_parsed_page)+1,i])
+                case "link":
+                    codes[i][5]["link_pos"] = []
+                    codes[i][5]["link_selected"] = False
+                    if len(codes) > i+1:
+                        codes[i][5]["link_pos"] = [codes[i][6], codes[i+1][6]]
+                    else:
+                        codes[i][5]["link_pos"] = [codes[i][6], codes[i][6]+len(empty_text[codes[i][6]:])]
+                    
+                    codes[i][5]["link_text"] = empty_text[codes[i][5]["link_pos"][0]:codes[i][5]["link_pos"][1]]
+                    interaction_points.append([len(current_parsed_page)+1,i])
 
         stripped_text = stripped_text.replace(codes[i][3],codes[i][4])
 
 
     if empty_text.replace(" ","") == "":
         empty_text = " " * (term.width -6)
-
+    
+    
     current_parsed_page.append({
         "original":textline,
-        "codes":codes,
+        "codes":codes.copy(),
         "stripped_text": stripped_text+"{right_point}",
         "empty_text":empty_text,
         "alignment":alignment
@@ -435,7 +473,7 @@ def input_check(value):
         #print(value)
     elif value == config_data["key_scroll_down"]:
         if viewport_mode == viewport.default:
-            if len(current_parsed_page) >= term.height - 8:
+            if len(current_parsed_page) >= term.height - 8 +1 + scroll_offset:
                 scroll_offset = clamp(scroll_offset + 1,0,len(current_parsed_page))
                 parse_display()
         #print(value)
@@ -480,5 +518,13 @@ with term.cbreak(), term.hidden_cursor(), term.fullscreen():
            
             input_check(value)
                 
-            
-            
+        
+        for x in range(len(scroll_points)):
+            point_a = scroll_points[x][0]-1
+            point_b = scroll_points[x][1]
+            #print(current_parsed_page[point_a])
+            if "scrolled_text" in current_parsed_page[point_a]["codes"][point_b][5]:
+                current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"] = current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"][-1] + current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"][:-1]
+                    #print(current_parsed_page[x]["codes"][z][5]["scrolled_text"])
+                    
+        parse_display()
