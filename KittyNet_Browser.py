@@ -248,7 +248,7 @@ def initial_setup():
                     else:
                         config_data[data[0]] = data[1]
 
-    default_colors = compile_color("",command_tags[5])+compile_color("",command_tags[7])
+    default_colors = compile_color("default",command_tags[4])+compile_color("default",command_tags[5])
 
 def parse_url():
     global current_url
@@ -280,25 +280,17 @@ def parse_display():
     global current_parsed_page
     global scroll_offset
 
-    total_line = default_colors
+    total_line = term.move_xy(3,5)+default_colors
     parse_offset = 0
-
+    current_text = ""
     for x in range(len(current_parsed_page)):
         x += scroll_offset
-
         if x < len(current_parsed_page):
             current_text =  current_parsed_page[x]["empty_text"]
-            while len(current_text) > term.width - 6:
-                total_line += term.move_xy(3,6+parse_offset) + current_text[:-(term.width-6)]
-                current_text = current_text[:(term.width-6)]
-
-                parse_offset += 1
-
             if parse_offset+6 > term.height - 3:
-
                 break
         else:
-
+            total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
             break
 
         patch_left = ""
@@ -316,11 +308,10 @@ def parse_display():
                     patch_left = " " * int(((term.width - 6) - len(current_text))/2)
 
         #print(current_parsed_page[x]["alignment"])
-
-        total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)
+        total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)+ default_colors
         parse_offset += 1
 
-    total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
+    #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
     #print(current_parsed_page[x]["stripped_text"])
     print(total_line)
 
@@ -399,6 +390,7 @@ def parse_by_line(textline):
         empty_text = " " * (term.width -6)
 
     current_parsed_page.append({
+        "original":textline,
         "codes":codes,
         "stripped_text": stripped_text+"{right_point}",
         "empty_text":empty_text,
@@ -444,7 +436,7 @@ def input_check(value):
         #print(value)
     elif value == config_data["key_scroll_down"]:
         if viewport_mode == viewport.default:
-            if len(current_parsed_page) > term.height - 8:
+            if len(current_parsed_page) >= term.height - 8:
                 scroll_offset = clamp(scroll_offset + 1,0,len(current_parsed_page))
                 parse_display()
         #print(value)

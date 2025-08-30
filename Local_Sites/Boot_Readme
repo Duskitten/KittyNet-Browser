@@ -1,10 +1,11 @@
-[center oncolor_purple]
+
+[oncolor_purple]
 
 [center]Meow     
 [center]     Meow!     
 [center]WELCOME TO KITTYNET!
 [center]V
-[center]
+
 [center]                    ████      
 [center]                  ██  ██      
 [center]██████████      ██    ██      
@@ -18,10 +19,10 @@
 
 [center oncolor_purple]
 
-[center oncolor_white color_black scroll]Hello and welcome to my site!
-[oncolor_default]
+[center oncolor_white color_black scroll]Hello and welcome to my site![]
 
-[center color_white]KittyNet is a free and open source project
+
+[center color_default]KittyNet is a free and open source project
 [center]with the goal of making a whole new internet!
 
 [center]To start, press the "F1" key to search in the URL Bar!
@@ -30,12 +31,12 @@
 
 [center]Use the $ for local files relative to this .py file!
 
-[center link]o.wo
+[center link]o.wo[]
 
-[center bold input]URL:
-[center bold input]Test?:
+[center bold input]URL:  []
+[center bold input]Test?:[]
 
-[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation by pressing tab to select, then enter!
+[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
 
 [center oncolor_purple]
 
