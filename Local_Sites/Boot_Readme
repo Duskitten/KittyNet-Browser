@@ -19,7 +19,7 @@
 
 [center oncolor_purple]
 
-[center oncolor_white color_black scroll]Hello and welcome to my site![]
+[center oncolor_white color_black scroll]Hello and [oncolor_dark-red]welcome[oncolor_white] to my site![]
 
 
 [center color_default]KittyNet is a free and open source project
