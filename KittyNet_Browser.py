@@ -418,8 +418,8 @@ def input_check(value):
                 url_text = "  URL:"+current_url
             else:
                 return
-        
-
+            
+        compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
         print(compiled_line)
         return
         
@@ -443,10 +443,17 @@ def input_check(value):
         if viewport_mode != viewport.url:
             viewport_mode = viewport.url
     elif value == config_data["key_toggle_source"]:
-        pass
+        if viewport_mode == viewport.default:
+            viewport_mode = viewport.source
+        elif viewport_mode == viewport.source:
+            viewport_mode = viewport.default
+            
         #print(value)
     elif value == config_data["key_toggle_console"]:
-        pass
+        if viewport_mode == viewport.default:
+            viewport_mode = viewport.console
+        elif viewport_mode == viewport.console:
+            viewport_mode = viewport.default
         #print(value)
     elif value == config_data["key_toggle_back"]:
         pass
