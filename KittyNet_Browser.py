@@ -1,4 +1,5 @@
 from enum import Enum
+from array import array
 import blessed
 import time
 import requests
@@ -63,24 +64,28 @@ command_tags = [
     "right",
     "left",
     "center",
-    "color_",
-    "no_color",
-    "oncolor_",
-    "no_oncolor",
+    "color",
+    "oncolor",
     "scroll",
     "link",
     "input",
     "underline",
     "bold",
     "blink",
+    "background",
+    "foreground"
+
 ]
 
 config_data = {
     #Colors
     "default_background_color":"black",
     "default_foreground_color":"white",
-    "default_link_foreground":"default",
+
+    "default_link_foreground":"blue",
     "default_link_background":"default",
+    "default_hover_link_foreground":"default",
+    "default_hover_link_background":"blue",
 
 
     #UI
@@ -151,15 +156,21 @@ def color_test():
 
 def compile_color(input_color,color_type):
     global command_tags
+
+    if not input_color in [*RYB_Colors] and input_color != "default":
+        return("")
+
     match color_type:
-        case "color_":
-            return term.color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
-        case "oncolor_":
-            return term.on_color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
-        case "no_oncolor":
-            return term.on_color_rgb(RYB_Colors[config_data["default_background_color"]][0],RYB_Colors[config_data["default_background_color"]][1],RYB_Colors[config_data["default_background_color"]][2])
-        case "no_color":
-            return term.color_rgb(RYB_Colors[config_data["default_foreground_color"]][0],RYB_Colors[config_data["default_foreground_color"]][1],RYB_Colors[config_data["default_foreground_color"]][2])
+        case "color":
+            if input_color == "default":
+                return term.color_rgb(RYB_Colors[config_data["default_foreground_color"]][0],RYB_Colors[config_data["default_foreground_color"]][1],RYB_Colors[config_data["default_foreground_color"]][2])
+            else:
+                return term.color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
+        case "oncolor":
+            if input_color == "default":
+                return term.on_color_rgb(RYB_Colors[config_data["default_background_color"]][0],RYB_Colors[config_data["default_background_color"]][1],RYB_Colors[config_data["default_background_color"]][2])
+            else:
+                return term.on_color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
 
 def redraw():
     global keybinds_text
@@ -215,7 +226,7 @@ def redraw():
         
     compiled_line += term.move_xy(len(kitty_text)+2,2)+url_text
     
-    compiled_line+=color_test()
+    #compiled_line+=color_test()
     
     print(compiled_line)
     
@@ -276,7 +287,6 @@ def parse_display():
         x += scroll_offset
 
         if x < len(current_parsed_page):
-
             current_text =  current_parsed_page[x]["empty_text"]
             while len(current_text) > term.width - 6:
                 total_line += term.move_xy(3,6+parse_offset) + current_text[:-(term.width-6)]
@@ -290,7 +300,6 @@ def parse_display():
         else:
 
             break
-
 
         patch_left = ""
         patch_right = ""
@@ -306,11 +315,13 @@ def parse_display():
                 else:
                     patch_left = " " * int(((term.width - 6) - len(current_text))/2)
 
+        #print(current_parsed_page[x]["alignment"])
 
-        total_line += term.move_xy(3,6+parse_offset) + patch_left + current_text + patch_right
+        total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)
         parse_offset += 1
 
-    total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6) - len(current_text)))
+    total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
+    #print(current_parsed_page[x]["stripped_text"])
     print(total_line)
 
 
@@ -322,7 +333,8 @@ def parse_by_line(textline):
     empty_text = textline
     codes = []
     ModPoint = 0
-
+    has_set_adjustment = False
+    alignment = "left"
 
     for x in range(len(modded_text)):
         char = modded_text[x]
@@ -333,22 +345,64 @@ def parse_by_line(textline):
                 if modded_text[x + i] == "]":
                     position = i+1
                     key = "{Key_"+str(ModPoint)+"}"
-                    codes.append([ModPoint,x,modded_text[x:x + position],key])
-                    stripped_text = stripped_text.replace(modded_text[x:x + position],key,1)
+                    codes.append([ModPoint,x,modded_text[x:x + position],key,""])
+                    if ModPoint != 0:
+                        stripped_text = stripped_text.replace(modded_text[x:x + position],key,1)
+                    else:
+                        stripped_text = stripped_text.replace(modded_text[x:x + position],key+"{left_point}",1)
                     empty_text = empty_text.replace(modded_text[x:x+position],"",1)
                     ModPoint += 1
                     #return_text += str(modded_text[x:x + position]) +"\n"
                     #print(default_colors+modded_text[x + i])
                     break
 
+
+    if empty_text == "":
+        stripped_text += " "*(term.width - 6)
+
+    if ModPoint == 0:
+        stripped_text = "{left_point}"+stripped_text
+
+
+
+
+
+    for i in range(len(codes)):
+        current_code = codes[i][2].replace("[","").replace("]","").lower().split(" ")
+        for x in current_code:
+            x = x.split("_")
+            match x[0]:
+                case "left":
+                    if not has_set_adjustment:
+                        #print("hai!")
+                        has_set_adjustment = True
+                        alignment = x[0]
+                case "right":
+                    if not has_set_adjustment:
+                        #print("hai!")
+                        has_set_adjustment = True
+                        alignment = x[0]
+                case "center":
+                    if not has_set_adjustment:
+                        #print("hai!")
+                        has_set_adjustment = True
+                        alignment = x[0]
+                case "color":
+                    codes[i][4] += compile_color(x[1],x[0])
+                case "oncolor":
+                    codes[i][4] += compile_color(x[1],x[0])
+
+        stripped_text = stripped_text.replace(codes[i][3],codes[i][4])
+
+
     if empty_text.replace(" ","") == "":
         empty_text = " " * (term.width -6)
 
     current_parsed_page.append({
         "codes":codes,
-        "stripped_text": stripped_text,
+        "stripped_text": stripped_text+"{right_point}",
         "empty_text":empty_text,
-        "alignment":"center"
+        "alignment":alignment
         })
 
 def clamp(n, smallest, largest): return max(smallest, min(n, largest))
@@ -384,8 +438,9 @@ def input_check(value):
     
     if value == config_data["key_scroll_up"]:
         if viewport_mode == viewport.default:
-            scroll_offset = clamp(scroll_offset - 1,0,999999999)
-            parse_display()
+            if scroll_offset > 0:
+                scroll_offset = clamp(scroll_offset - 1,0,999999999)
+                parse_display()
         #print(value)
     elif value == config_data["key_scroll_down"]:
         if viewport_mode == viewport.default:
