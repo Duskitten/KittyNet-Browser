@@ -1,5 +1,5 @@
-[background_dark-red foreground_white]
-[oncolor_purple]
+[background_dark-red-purple foreground_pastel-purple]
+[oncolor_pastel-purple]
 
 [center]Meow     
 [center]     Meow!     
@@ -17,9 +17,9 @@
 [center]      ██            ██  ██    
 [center]        ████████████████      
 
-[center oncolor_purple]
+[center oncolor_pastel-purple]
 
-[center oncolor_white color_black scroll]Hello and welcome to my site!                  
+[center oncolor_pastel-purple color_white scroll]Hello and welcome to my site!                  
 
 
 [center color_default]KittyNet is a free and open source project
@@ -36,10 +36,7 @@
 [center bold input]URL:  []
 [center bold input]Test?:[]
 
-[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
-[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
-[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
-[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
+[center]To find documentation for your own site, go to [link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
 
-[center oncolor_purple]
+[center oncolor_pastel-purple]
 
