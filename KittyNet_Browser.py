@@ -81,6 +81,9 @@ config_data = {
     "default_background_color":"black",
     "default_foreground_color":"white",
 
+    "default_webpage_color":"default",
+    "default_webpage_background_color":"default",
+    
     "default_link_foreground":"blue",
     "default_link_background":"default",
     "default_hover_link_foreground":"default",
@@ -117,6 +120,8 @@ interaction_point = 0
 interaction_points = []
 scroll_points = []
 link_colors = []
+current_page_foreground = ""
+current_page_background = ""
 
 ##Prebuilt variables
 url_text = "  URL:"+current_url
@@ -128,6 +133,7 @@ sectioned_line = ""
 kitty_line = ""
 fill_line = ""
 default_colors = ""
+default_web_colors = ""
 
 viewport_size = [3,6]
 
@@ -169,11 +175,15 @@ def compile_color(input_color,color_type):
         case "color":
             if input_color == "default":
                 return term.color_rgb(RYB_Colors[config_data["default_foreground_color"]][0],RYB_Colors[config_data["default_foreground_color"]][1],RYB_Colors[config_data["default_foreground_color"]][2])
+            elif input_color == "web_default":
+                return term.color_rgb(RYB_Colors[config_data["default_webpage_color"]][0],RYB_Colors[config_data["default_webpage_color"]][1],RYB_Colors[config_data["default_webpage_color"]][2])
             else:
                 return term.color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
         case "oncolor":
             if input_color == "default":
                 return term.on_color_rgb(RYB_Colors[config_data["default_background_color"]][0],RYB_Colors[config_data["default_background_color"]][1],RYB_Colors[config_data["default_background_color"]][2])
+            elif input_color == "web_default":
+                return term.on_color_rgb(RYB_Colors[config_data["default_webpage_background_color"]][0],RYB_Colors[config_data["default_webpage_background_color"]][1],RYB_Colors[config_data["default_webpage_background_color"]][2])
             else:
                 return term.on_color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
 
@@ -239,6 +249,7 @@ def initial_setup():
     global config_data
     global default_colors
     global link_colors
+    global default_web_colors
     if os.path.exists(script_directory+"/KittyNet.config"):
         with open(script_directory+"/KittyNet.config") as f:
             thisfile = f.read()
@@ -256,6 +267,7 @@ def initial_setup():
                         config_data[data[0]] = data[1]
 
     default_colors = compile_color("default",command_tags[3])+compile_color("default",command_tags[4])
+    default_web_colors = compile_color(config_data["default_webpage_color"],command_tags[3])+compile_color(config_data["default_webpage_background_color"],command_tags[4])
     link_colors = [
         compile_color(config_data["default_link_foreground"],command_tags[3]),
         compile_color(config_data["default_link_background"],command_tags[4]),
@@ -282,11 +294,24 @@ def parse_url():
         
         try:
             r = requests.get('http://'+current_url, timeout=2)
+            parse_manager(r.text)
             #print(r.text)
         except:
             print("Ack!")
 
 def parse_manager(currentpage):
+    global scroll_points
+    global interaction_points
+    global current_parsed_page
+    global current_page_foreground
+    global current_page_background
+    
+    scroll_points.clear()
+    interaction_points.clear()
+    current_parsed_page.clear()
+    current_page_foreground = ""
+    current_page_background = ""
+    
     for x in currentpage.splitlines():
         parse_by_line(x)
 
@@ -299,10 +324,19 @@ def parse_display():
     global scroll_points
     global link_points
     global link_colors
+    global default_web_colors
+    global current_page_foreground
+    global current_page_foreground
+    
+    
+    selected_color = default_web_colors + current_page_foreground + current_page_background
 
-    total_line = term.move_xy(3,5)+default_colors
+    total_line = term.move_xy(3,5)+selected_color
     parse_offset = 0
     current_text = ""
+    
+    
+    
     for x in range(len(current_parsed_page)):
         x += scroll_offset
         if x < len(current_parsed_page):
@@ -310,7 +344,7 @@ def parse_display():
             if parse_offset+6 > term.height - 3:
                 break
         else:
-            total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
+            #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
             break
 
         patch_left = ""
@@ -328,7 +362,7 @@ def parse_display():
                     patch_left = " " * int(((term.width - 6) - len(current_text))/2)
 
         #print(current_parsed_page[x]["alignment"])
-        total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)+ default_colors
+        total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)+ selected_color
         
         for y in range(len(scroll_points)):
             if scroll_points[y][0]-1 == x:
@@ -338,7 +372,7 @@ def parse_display():
             #print(len(current_parsed_page[point_a]["codes"][point_b]))
                 if "scrolled_text" in scroll_object[5]:
                 #print("Hai")
-                    total_line += term.move_xy(len(patch_left)+3+scroll_object[5]["scroll_pos"][0] ,6+parse_offset) + scroll_object[4] +scroll_object[5]["scrolled_text"] +default_colors
+                    total_line += term.move_xy(len(patch_left)+3+scroll_object[5]["scroll_pos"][0] ,6+parse_offset) + scroll_object[4] +scroll_object[5]["scrolled_text"] +selected_color
         
         for y in range(len(interaction_points)):
             if interaction_points[y][0]-1 == x:
@@ -347,13 +381,19 @@ def parse_display():
                 link_object = current_parsed_page[point_a]["codes"][point_b]
                 if "link_text" in link_object[5]:
                     if y == interaction_point:
-                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[2] + link_colors[3] + link_object[4] + link_object[5]["link_text"] +default_colors+term.no_underline
+                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[2] + link_colors[3] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
                     else:
-                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[0] + link_colors[1] + link_object[4] + link_object[5]["link_text"] +default_colors+term.no_underline
+                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[0] + link_colors[1] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
                 
             
         parse_offset += 1
         
+    if parse_offset < (term.height-8):
+        original_offset = parse_offset
+        patch_left = " " * ((term.width - 6))
+        for x in range((term.height-8)-parse_offset):
+            x += original_offset
+            total_line += term.move_xy(3 ,6+x)+ patch_left +selected_color+term.no_underline
     #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
     #print(current_parsed_page[x]["stripped_text"])
     print(total_line)
@@ -362,6 +402,9 @@ def parse_display():
 def parse_by_line(textline):
     global scroll_points
     global current_parsed_page
+    global current_page_foreground
+    global current_page_background
+    
     return_text = ""
     modded_text = textline
     stripped_text = textline
@@ -448,6 +491,12 @@ def parse_by_line(textline):
                     
                     codes[i][5]["link_text"] = empty_text[codes[i][5]["link_pos"][0]:codes[i][5]["link_pos"][1]]
                     interaction_points.append([len(current_parsed_page)+1,i])
+                case "foreground":
+                    if len(current_parsed_page) == 0:
+                        current_page_foreground = compile_color(x[1],command_tags[3])
+                case "background":
+                    if len(current_parsed_page) == 0:
+                        current_page_background = compile_color(x[1],command_tags[4])
 
         stripped_text = stripped_text.replace(codes[i][3],codes[i][4])
 
@@ -472,6 +521,7 @@ def input_check(value):
     global current_url
     global link_points
     global interaction_point
+    global default_colors
     
     if viewport_mode == viewport.url:
         if value == config_data["key_interact"]:
@@ -489,7 +539,7 @@ def input_check(value):
             else:
                 return
             
-        compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
+        compiled_line = term.move_xy(len(kitty_text)+2,2)+default_colors+url_text
         print(compiled_line)
         return
         
@@ -552,9 +602,13 @@ def input_check(value):
             if "link_text" in link_object[5]:
                 old_url_len = len(current_url)
                 current_url = link_object[5]["link_text"]
-                url_text = "  URL:"+current_url+(" " * (old_url_len - len(current_url)))
+                url_text = default_colors+"  URL:"+(" " * (old_url_len - len(current_url)))
                 compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
-                print(compiled_line)                
+                parse_url()
+                print(compiled_line) 
+                
+                
+
 with term.cbreak(), term.hidden_cursor(), term.fullscreen():
     initial_setup()
 

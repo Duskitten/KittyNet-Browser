@@ -1,3 +1,4 @@
+[background_dark-red foreground_white]
 [oncolor_purple]
 
 [center]Meow     
@@ -36,5 +37,9 @@
 [center bold input]Test?:[]
 
 [center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
+[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
+[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
+[center]To find documentation for your own site, go to [bold link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
 
 [center oncolor_purple]
+
