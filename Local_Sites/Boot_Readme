@@ -33,10 +33,10 @@
 
 [center link]o.wo[]
 
-[center bold input]URL:  []
-[center bold input]Test?:[]
+[center bold input_url,24]URL:[]   
+[center bold input_test,24]Test?:[]
 
-[center]To find documentation for your own site, go to [link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
+[center]To find documentation for your own site, go to [link_url,test]$Local_Sites/Documentation[] by pressing tab to select, then enter!
 
 [center oncolor_pastel-purple]
 

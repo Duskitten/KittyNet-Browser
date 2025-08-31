@@ -88,6 +88,11 @@ config_data = {
     "default_link_background":"default",
     "default_hover_link_foreground":"default",
     "default_hover_link_background":"blue",
+    
+    "default_input_foreground":"white",
+    "default_input_background":"default",
+    "default_hover_input_foreground":"white",
+    "default_hover_input_background":"dark-gray",
 
 
     #UI
@@ -120,6 +125,8 @@ interaction_point = 0
 interaction_points = []
 scroll_points = []
 link_colors = []
+input_colors = []
+input_hovered = False
 current_page_foreground = ""
 current_page_background = ""
 
@@ -250,6 +257,7 @@ def initial_setup():
     global default_colors
     global link_colors
     global default_web_colors
+    global input_colors
     if os.path.exists(script_directory+"/KittyNet.config"):
         with open(script_directory+"/KittyNet.config") as f:
             thisfile = f.read()
@@ -275,6 +283,12 @@ def initial_setup():
         compile_color(config_data["default_hover_link_background"],command_tags[4])
         ] 
 
+    input_colors = [
+        compile_color(config_data["default_input_foreground"],command_tags[3]),
+        compile_color(config_data["default_input_background"],command_tags[4]),
+        compile_color(config_data["default_hover_input_foreground"],command_tags[3]),
+        compile_color(config_data["default_hover_input_background"],command_tags[4])
+        ] 
 def parse_url():
     global current_url
 
@@ -327,6 +341,7 @@ def parse_display():
     global default_web_colors
     global current_page_foreground
     global current_page_foreground
+    global input_colors
     
     
     selected_color = default_web_colors + current_page_foreground + current_page_background
@@ -384,6 +399,11 @@ def parse_display():
                         total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[2] + link_colors[3] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
                     else:
                         total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[0] + link_colors[1] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
+                elif "input_text" in link_object[5]:
+                    if y == interaction_point:
+                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["input_pos"][0] ,6+parse_offset)+term.underline + input_colors[2] + input_colors[3] + link_object[4] + link_object[5]["input_text"] +link_object[5]["input_typed"] +selected_color+term.no_underline
+                    else:
+                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["input_pos"][0] ,6+parse_offset)+term.underline + input_colors[0] + input_colors[1] + link_object[4] + link_object[5]["input_text"] +link_object[5]["input_typed"] +selected_color+term.no_underline
                 
             
         parse_offset += 1
@@ -483,13 +503,28 @@ def parse_by_line(textline):
                     scroll_points.append([len(current_parsed_page)+1,i])
                 case "link":
                     codes[i][5]["link_pos"] = []
-                    codes[i][5]["link_selected"] = False
                     if len(codes) > i+1:
                         codes[i][5]["link_pos"] = [codes[i][6], codes[i+1][6]]
                     else:
                         codes[i][5]["link_pos"] = [codes[i][6], codes[i][6]+len(empty_text[codes[i][6]:])]
                     
+                    if len(x) > 1:
+                        codes[i][5]["linked_tags"] = x[1].split(",")
                     codes[i][5]["link_text"] = empty_text[codes[i][5]["link_pos"][0]:codes[i][5]["link_pos"][1]]
+                    interaction_points.append([len(current_parsed_page)+1,i])
+                case "input":
+                    codes[i][5]["input_pos"] = []
+                    codes[i][5]["input_typed"] = ""
+                    if len(codes) > i+1:
+                        codes[i][5]["input_pos"] = [codes[i][6], codes[i+1][6]]
+                    else:
+                        codes[i][5]["input_pos"] = [codes[i][6], codes[i][6]+len(empty_text[codes[i][6]:])]
+                        
+                    if len(x) > 1:
+                        codes[i][5]["input_tag"] = x[1].split(",")[0]
+                        codes[i][5]["input_length"] = int(x[1].split(",")[1])
+                        
+                    codes[i][5]["input_text"] = empty_text[codes[i][5]["input_pos"][0]:codes[i][5]["input_pos"][1]]
                     interaction_points.append([len(current_parsed_page)+1,i])
                 case "foreground":
                     if len(current_parsed_page) == 0:
@@ -523,41 +558,25 @@ def input_check(value):
     global interaction_point
     global default_colors
     
-    if viewport_mode == viewport.url:
-        if value == config_data["key_interact"]:
-            viewport_mode = viewport.default
-            #current_parsed_page.clear()
-            parse_url()
-            return
-        elif value == "backspace":
-            current_url = current_url[:-1]
-            url_text = "  URL:"+current_url+" "
-        else:
-            if len(value) == 1:
-                current_url += value
-                url_text = "  URL:"+current_url
-            else:
-                return
+    
+    is_input = False
+    if len(interaction_points) > 0:
+        point_a = interaction_points[interaction_point][0]-1
+        point_b = interaction_points[interaction_point][1]
+        link_point = current_parsed_page[point_a]["codes"][point_b]
+        if "input_text" in link_point[5]:
+            is_input = True
             
-        compiled_line = term.move_xy(len(kitty_text)+2,2)+default_colors+url_text
-        print(compiled_line)
-        return
-        
-    
-    
-    
-    
+
     if value == config_data["key_scroll_up"]:
-        if viewport_mode == viewport.default:
-            if scroll_offset > 0:
-                scroll_offset = clamp(scroll_offset - 1,0,999999999)
-                parse_display()
+        if scroll_offset > 0:
+            scroll_offset = clamp(scroll_offset - 1,0,999999999)
+            parse_display()
         #print(value)
     elif value == config_data["key_scroll_down"]:
-        if viewport_mode == viewport.default:
-            if len(current_parsed_page) >= term.height - 8 +1 + scroll_offset:
-                scroll_offset = clamp(scroll_offset + 1,0,len(current_parsed_page))
-                parse_display()
+        if len(current_parsed_page) >= term.height - 8 +1 + scroll_offset:
+            scroll_offset = clamp(scroll_offset + 1,0,len(current_parsed_page))
+            parse_display()
         #print(value)
     elif value == config_data["key_toggle_urlbar"]:
         if viewport_mode != viewport.url:
@@ -606,8 +625,39 @@ def input_check(value):
                 compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
                 parse_url()
                 print(compiled_line) 
+        elif viewport_mode == viewport.url:
+            viewport_mode = viewport.default
+            #current_parsed_page.clear()
+            parse_url()
+            url_text = "  URL:"+current_url
+            compiled_line = term.move_xy(len(kitty_text)+2,2)+default_colors+url_text
+            print(compiled_line)
+            return
+    elif value == "backspace":
+        if viewport_mode == viewport.url:
+            current_url = current_url[:-1]
+            url_text = "  URL:"+current_url+" "
+            compiled_line = term.move_xy(len(kitty_text)+2,2)+default_colors+url_text
+            print(compiled_line)
+        elif viewport_mode == viewport.default:
+            if is_input:
+                link_point[5]["input_typed"] = link_point[5]["input_typed"][:-1]
+                parse_display()
+    else:
+        if viewport_mode == viewport.url:
+            if len(value) == 1:
+                current_url += value
+                url_text = "  URL:"+current_url
+                compiled_line = term.move_xy(len(kitty_text)+2,2)+default_colors+url_text
+                print(compiled_line)
+        elif viewport_mode == viewport.default:
+            if is_input and len(value) == 1:
+                if len(link_point[5]["input_typed"]) < link_point[5]["input_length"]:
+                    link_point[5]["input_typed"] += value
+                    parse_display()
                 
-                
+                        
+            
 
 with term.cbreak(), term.hidden_cursor(), term.fullscreen():
     initial_setup()
@@ -632,9 +682,10 @@ with term.cbreak(), term.hidden_cursor(), term.fullscreen():
         for x in range(len(scroll_points)):
             point_a = scroll_points[x][0]-1
             point_b = scroll_points[x][1]
+            link_point = current_parsed_page[point_a]["codes"][point_b]
             #print(current_parsed_page[point_a])
-            if "scrolled_text" in current_parsed_page[point_a]["codes"][point_b][5]:
-                current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"] = current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"][-1] + current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"][:-1]
+            if "scrolled_text" in link_point[5]:
+                link_point[5]["scrolled_text"] = link_point[5]["scrolled_text"][-1] + link_point[5]["scrolled_text"][:-1]
                     #print(current_parsed_page[x]["codes"][z][5]["scrolled_text"])
                     
         parse_display()
