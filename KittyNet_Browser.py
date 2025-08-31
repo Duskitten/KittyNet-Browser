@@ -100,6 +100,8 @@ config_data = {
     "key_toggle_back":"f4",
     "key_toggle_reload":"f5",
     "key_interact=enter":"enter",
+    "key_toggle_next_element":">",
+    "key_toggle_prev_element":"<",
 
     #Bootup
     "homepage":"$Local_Sites/Boot_Readme"
@@ -114,6 +116,7 @@ scroll_offset = 0
 interaction_point = 0
 interaction_points = []
 scroll_points = []
+link_colors = []
 
 ##Prebuilt variables
 url_text = "  URL:"+current_url
@@ -159,7 +162,7 @@ def color_test():
 def compile_color(input_color,color_type):
     global command_tags
 
-    if not input_color in [*RYB_Colors] and input_color != "default":
+    if (not input_color in [*RYB_Colors]) and input_color != "default":
         return("")
 
     match color_type:
@@ -233,7 +236,9 @@ def redraw():
     print(compiled_line)
     
 def initial_setup():
+    global config_data
     global default_colors
+    global link_colors
     if os.path.exists(script_directory+"/KittyNet.config"):
         with open(script_directory+"/KittyNet.config") as f:
             thisfile = f.read()
@@ -251,6 +256,12 @@ def initial_setup():
                         config_data[data[0]] = data[1]
 
     default_colors = compile_color("default",command_tags[3])+compile_color("default",command_tags[4])
+    link_colors = [
+        compile_color(config_data["default_link_foreground"],command_tags[3]),
+        compile_color(config_data["default_link_background"],command_tags[4]),
+        compile_color(config_data["default_hover_link_foreground"],command_tags[3]),
+        compile_color(config_data["default_hover_link_background"],command_tags[4])
+        ] 
 
 def parse_url():
     global current_url
@@ -268,8 +279,12 @@ def parse_url():
         ###Config URL
         pass
     else:
-        ###Regular Url
-        pass
+        
+        try:
+            r = requests.get('http://'+current_url, timeout=2)
+            #print(r.text)
+        except:
+            print("Ack!")
 
 def parse_manager(currentpage):
     for x in currentpage.splitlines():
@@ -281,6 +296,9 @@ def parse_manager(currentpage):
 def parse_display():
     global current_parsed_page
     global scroll_offset
+    global scroll_points
+    global link_points
+    global link_colors
 
     total_line = term.move_xy(3,5)+default_colors
     parse_offset = 0
@@ -316,11 +334,23 @@ def parse_display():
             if scroll_points[y][0]-1 == x:
                 point_a = scroll_points[y][0]-1
                 point_b = scroll_points[y][1]
+                scroll_object = current_parsed_page[point_a]["codes"][point_b]
             #print(len(current_parsed_page[point_a]["codes"][point_b]))
-                if "scrolled_text" in current_parsed_page[point_a]["codes"][point_b][5]:
+                if "scrolled_text" in scroll_object[5]:
                 #print("Hai")
-                    total_line += term.move_xy(len(patch_left)+3+current_parsed_page[point_a]["codes"][point_b][5]["scroll_pos"][0] ,6+parse_offset) + current_parsed_page[point_a]["codes"][point_b][4] +current_parsed_page[point_a]["codes"][point_b][5]["scrolled_text"] +default_colors
-
+                    total_line += term.move_xy(len(patch_left)+3+scroll_object[5]["scroll_pos"][0] ,6+parse_offset) + scroll_object[4] +scroll_object[5]["scrolled_text"] +default_colors
+        
+        for y in range(len(interaction_points)):
+            if interaction_points[y][0]-1 == x:
+                point_a = interaction_points[y][0]-1
+                point_b = interaction_points[y][1]
+                link_object = current_parsed_page[point_a]["codes"][point_b]
+                if "link_text" in link_object[5]:
+                    if y == interaction_point:
+                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[2] + link_colors[3] + link_object[4] + link_object[5]["link_text"] +default_colors+term.no_underline
+                    else:
+                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[0] + link_colors[1] + link_object[4] + link_object[5]["link_text"] +default_colors+term.no_underline
+                
             
         parse_offset += 1
         
@@ -440,11 +470,13 @@ def input_check(value):
     global scroll_offset
     global viewport_mode
     global current_url
+    global link_points
+    global interaction_point
     
     if viewport_mode == viewport.url:
         if value == config_data["key_interact"]:
             viewport_mode = viewport.default
-            current_parsed_page.clear()
+            #current_parsed_page.clear()
             parse_url()
             return
         elif value == "backspace":
@@ -497,8 +529,32 @@ def input_check(value):
         #print(value)
     elif value == config_data["key_toggle_reload"]:
         pass
+    elif value == config_data["key_toggle_next_element"]:
+        if viewport_mode == viewport.default:
+            interaction_point += 1
+            if interaction_point >= len(interaction_points):
+                interaction_point = 0
+            parse_display()
+    elif value == config_data["key_toggle_prev_element"]:
         #print(value)
-
+        if viewport_mode == viewport.default:
+            interaction_point -= 1
+            if interaction_point < 0:
+                interaction_point = len(interaction_points)-1
+            parse_display()
+            
+        #print(value)
+    elif value == config_data["key_interact"]:
+        if viewport_mode == viewport.default:
+            point_a = interaction_points[interaction_point][0]-1
+            point_b = interaction_points[interaction_point][1]
+            link_object = current_parsed_page[point_a]["codes"][point_b]
+            if "link_text" in link_object[5]:
+                old_url_len = len(current_url)
+                current_url = link_object[5]["link_text"]
+                url_text = "  URL:"+current_url+(" " * (old_url_len - len(current_url)))
+                compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
+                print(compiled_line)                
 with term.cbreak(), term.hidden_cursor(), term.fullscreen():
     initial_setup()
 
