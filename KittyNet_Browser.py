@@ -203,7 +203,8 @@ def redraw():
     global kitty_line
     global fill_line
     global config_data
-    
+    global url_text
+    global current_url
     compiled_line = default_colors
     
     
@@ -246,7 +247,7 @@ def redraw():
         compiled_line += term.move_xy(term.width-1,4)+"┤"
         compiled_line += term.move_xy(term.width-1,term.height-1)+"┘"
         
-    compiled_line += term.move_xy(len(kitty_text)+2,2)+url_text
+    compiled_line += term.move_xy(len(kitty_text)+2,2)+"  URL:"+current_url
     
     #compiled_line+=color_test()
     
@@ -291,7 +292,6 @@ def initial_setup():
         ] 
 def parse_url():
     global current_url
-
     if current_url.startswith("$"):
         new_text = current_url.replace("$","./")
         if os.path.isfile(new_text):
@@ -319,7 +319,9 @@ def parse_manager(currentpage):
     global current_parsed_page
     global current_page_foreground
     global current_page_background
-    
+    global interaction_point
+    redraw()
+    interaction_point = 0
     scroll_points.clear()
     interaction_points.clear()
     current_parsed_page.clear()
@@ -614,7 +616,7 @@ def input_check(value):
             
         #print(value)
     elif value == config_data["key_interact"]:
-        if viewport_mode == viewport.default:
+        if viewport_mode == viewport.default and len(interaction_points) > 0:
             point_a = interaction_points[interaction_point][0]-1
             point_b = interaction_points[interaction_point][1]
             link_object = current_parsed_page[point_a]["codes"][point_b]
@@ -624,7 +626,7 @@ def input_check(value):
                 url_text = default_colors+"  URL:"+(" " * (old_url_len - len(current_url)))
                 compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
                 parse_url()
-                print(compiled_line) 
+                print(compiled_line)
         elif viewport_mode == viewport.url:
             viewport_mode = viewport.default
             #current_parsed_page.clear()
