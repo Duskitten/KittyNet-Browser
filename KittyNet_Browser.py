@@ -320,7 +320,9 @@ def parse_manager(currentpage):
     global current_page_foreground
     global current_page_background
     global interaction_point
+    global scroll_offset
     redraw()
+    scroll_offset = 0
     interaction_point = 0
     scroll_points.clear()
     interaction_points.clear()
@@ -622,11 +624,29 @@ def input_check(value):
             link_object = current_parsed_page[point_a]["codes"][point_b]
             if "link_text" in link_object[5]:
                 old_url_len = len(current_url)
-                current_url = link_object[5]["link_text"]
-                url_text = default_colors+"  URL:"+(" " * (old_url_len - len(current_url)))
-                compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
+                compile_params = ""
+                
+                if "linked_tags" in link_object[5]:
+                    compile_params = "/"
+                    for x in range(len(link_object[5]["linked_tags"])):
+                        if x == 0:
+                            compile_params += "?"
+                        else:
+                            compile_params += "&"
+                        this_tag = link_object[5]["linked_tags"][x]+"="
+                        compile_params += this_tag
+                        for y in range(len(interaction_points)):
+                            point_a_2 = interaction_points[y][0]-1
+                            point_b_2 = interaction_points[y][1]
+                            link_point_2 = current_parsed_page[point_a_2]["codes"][point_b_2]
+                            if "input_text" in link_point_2[5] and "linked_tags" in link_point_2[5] and (link_object[5]["linked_tags"][x] in link_point_2[5]["linked_tags"]):
+                                compile_params += link_point_2[5]["input_text"]+" "
+                                    
+                current_url = link_object[5]["link_text"]+compile_params
+                url_text = default_colors+"  URL:"+(" " * clamp(old_url_len - len(current_url),0,9999999999999))
+                #compiled_line = term.move_xy(len(kitty_text)+2,2)+url_text
+                #print(compiled_line)
                 parse_url()
-                print(compiled_line)
         elif viewport_mode == viewport.url:
             viewport_mode = viewport.default
             #current_parsed_page.clear()

@@ -31,7 +31,7 @@
 
 [center]Use the $ for local files relative to this .py file!
 
-[center link]o.wo[]
+[center link_url]o.wo[]
      Please write your opinionion:
      [input_url,96]-[]            
      [input_url,96]-[]            
@@ -44,7 +44,7 @@
 
 [center  input_test,24]Test?:[]
 
-[center]To find documentation for your own site, go to [link_url,test]$Local_Sites/Documentation[] by pressing tab to select, then enter!
+[center]To find documentation for your own site, go to [link]$Local_Sites/Documentation[] by pressing tab to select, then enter!
 
 [center oncolor_pastel-purple]
 
