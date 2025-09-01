@@ -1,45 +1,79 @@
-[c_on_color(20,50,194) c_line]
-[c_on_color(20,50,194) c_line c_bold]KITTYNET DOCUMENTATION[c_line]
-[c_on_color(20,50,194) c_line]
+[background_dark-red-purple foreground_pastel-purple oncolor_pastel-purple]
+[oncolor_pastel-purple color_white]     KITTYNET DOCUMENTATION
+[oncolor_pastel-purple]
 
-KITTYNET DOCUMENTATION [c_line]
-[c_line] KITTYNET DOCUMENTATION
+[color_white]   Use Arrow Keys "UP" and "DOWN" to scroll the browser!
 
-Use Arrow Keys "UP" and "DOWN" to scroll the browser!
+[color_white]   All modifiers should be marked with "[" brackets.
+[color_white]   Add "\" to beginning of command to break it for visual reference.
+[color_white]   Break like such : \[color_white]  
 
-All modifiers should be marked with "/[" and end with "]".
-Add "/" to beginning of command to break it for visual reference.
+[color_white]   The only currently supported terminal is Kitty (Ironic.)
 
-[c_bold c_on_color(20,50,194)]- c_line[c_line]
-[c_reset c_color(255,255,255)]    -- Generates a new line break, or can be used to center/move content.[c_reset]
-[c_reset c_color(255,255,255)]    -- Advised to use in tandem with [c_bold c_on_color(20,50,194)] c_on_color [c_reset c_color(255,255,255)] for a colored bar.
 
-[c_bold c_on_color(20,50,194)]- c_on_color(R,G,B)[c_line]
-[c_reset c_color(255,255,255)]    -- sets the background of a text line.
+[oncolor_pastel-purple color_white]- foreground_*
+[color_white]    -- Creates new foreground (text) coloring for the website, this will become the new color_page-color.
+[color_white]    -- **This only runs on the first line of the page.
 
-[c_bold c_on_color(20,50,194)]- c_color(R,G,B)[c_line]
-[c_reset c_color(255,255,255)]    -- sets the text color of a text line.
+[oncolor_pastel-purple color_white]- background_*
+[color_white]    -- Creates new background coloring for the website, this will become the new oncolor_page-color.
+[color_white]    -- **This only runs on the first line of the page.
 
-[c_bold c_on_color(20,50,194)]- c_color_reset[c_line]
-[c_reset c_color(255,255,255)]    -- resets a text line to default colors.
+[oncolor_pastel-purple color_white]- color_*
+[color_white]    -- creates a new foreground (text) color, color references are below.
+[color_white]    -- color_default will set to the page's default text color
 
-[c_bold c_on_color(20,50,194)]- c_bold[c_line]
-[c_reset c_color(255,255,255)]    -- makes text be bold.
+[oncolor_pastel-purple color_white]- oncolor_*
+[color_white]    -- creates a new background color, color references are below.
+[color_white]    -- oncolor_default will set to the page's default background color
 
-[c_bold c_on_color(20,50,194)]- c_reset[c_line]
-[c_reset c_color(255,255,255)]    -- resets the text line to base app default.
+[oncolor_pastel-purple color_white]- center
+[color_white]    -- centers the line of text
 
-[c_bold c_on_color(20,50,194)]- c_link(URL|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B))[c_line]
-[c_reset c_color(255,255,255)]    -- *URL requires %s for spaces to be parsed ex: some%swords = some words
-[c_reset c_color(255,255,255)]    -- URL, Foreground, Background, Selected Foreground, Selected Background
-[c_reset c_color(255,255,255)]    -- It is advised to reserve the space for URL by typing immediately after the "]"
+[oncolor_pastel-purple color_white]- left
+[color_white]    -- left aligns the line of text
 
-[c_bold c_on_color(20,50,194)]- c_input(TEXT|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B)|(R,G,B))[c_line]
-[c_reset c_color(255,255,255)]    -- *TEXT requires %s for spaces to be parsed ex: some%swords = some words
-[c_reset c_color(255,255,255)]    -- Text, Foreground, Background, Selected Foreground, Selected Background, Text Foreground, Text Background
-[c_reset c_color(255,255,255)]    -- It is advised to reserve the space for URL by typing immediately after the "]"
+[oncolor_pastel-purple color_white]- right
+[color_white]    -- right aligns the line of text
 
-[c_bold c_on_color(20,50,194)]- c_scroll(TEXT|(R,G,B)|(R,G,B))[c_line]
-[c_reset c_color(255,255,255)]    -- *TEXT requires %s for spaces to be parsed ex: some%swords = some words
-[c_reset c_color(255,255,255)]    -- Text, Foreground, Background
-[c_reset c_color(255,255,255)]    -- It is advised to reserve the space for Text by typing immediately after the "]"
+[oncolor_pastel-purple color_white]- scroll
+[color_white]    -- causes the text to scroll
+[color_white]    -- text scan ends at next found "["
+
+[oncolor_pastel-purple color_white]- link_*
+[color_white]    -- Creates a new link to hop from.
+[color_white]    -- * link can have additional tags for input querying, seperate by ","
+
+[oncolor_pastel-purple color_white]- input_*_*
+[color_white]    -- Creates a new input area
+[color_white]    -- First * allows for limitation number for lines 
+[color_white]    -- Second * allows for tagging, seperate by ","
+
+[oncolor_pastel-purple color_white]- Color Examples
+[color_white]    -- There are many colors to choose from currently
+[color_white]    -- These can be modified with "dark-" and "pastel-" with the exception of black and white
+
+[color_white]     [oncolor_black]  [oncolor_page-color]   black
+[color_white]     [oncolor_white]  [oncolor_page-color]   white
+[color_white]   [oncolor_dark-red]  [oncolor_red]  [oncolor_pastel-red]  [oncolor_page-color] red
+[color_white]   [oncolor_dark-red-orange]  [oncolor_red-orange]  [oncolor_pastel-red-orange]  [oncolor_page-color] red-orange
+[color_white]   [oncolor_dark-orange]  [oncolor_orange]  [oncolor_pastel-orange]  [oncolor_page-color] orange
+[color_white]   [oncolor_dark-yellow-orange]  [oncolor_yellow-orange]  [oncolor_pastel-yellow-orange]  [oncolor_page-color] yellow-orange
+[color_white]   [oncolor_dark-yellow]  [oncolor_yellow]  [oncolor_pastel-yellow]  [oncolor_page-color] yellow
+[color_white]   [oncolor_dark-yellow-green]  [oncolor_yellow-green]  [oncolor_pastel-yellow-green]  [oncolor_page-color] yellow-green
+[color_white]   [oncolor_dark-green]  [oncolor_green]  [oncolor_pastel-green]  [oncolor_page-color] green
+[color_white]   [oncolor_dark-blue-green]  [oncolor_blue-green]  [oncolor_pastel-blue-green]  [oncolor_page-color] blue-green
+[color_white]   [oncolor_dark-blue]  [oncolor_blue]  [oncolor_pastel-blue]  [oncolor_page-color] blue
+[color_white]   [oncolor_dark-blue-purple]  [oncolor_blue-purple]  [oncolor_pastel-blue-purple]  [oncolor_page-color] blue-purple
+[color_white]   [oncolor_dark-purple]  [oncolor_purple]  [oncolor_pastel-purple]  [oncolor_page-color] purple
+[color_white]   [oncolor_dark-red-purple]  [oncolor_red-purple]  [oncolor_pastel-red-purple]  [oncolor_page-color] red-purple
+
+[color_white]    -- Optionally, there is the default keyword to make it blend with the browser
+
+[color_white]     [oncolor_default]  [oncolor_page-color]   default
+
+[color_white]    -- And to access the current page's colors
+
+[color_white]     [oncolor_page-color]  [oncolor_page-color]   page-color
+
+[oncolor_pastel-purple]

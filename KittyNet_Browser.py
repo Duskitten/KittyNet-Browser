@@ -178,23 +178,29 @@ def color_test():
 
 def compile_color(input_color,color_type):
     global command_tags
+    global current_page_background
+    global current_page_foreground
 
-    if (not input_color in [*RYB_Colors]) and input_color != "default":
+    if (not input_color in [*RYB_Colors]) and input_color != "default" and input_color != "page-color":
         return("")
 
     match color_type:
         case "color":
             if input_color == "default":
                 return term.color_rgb(RYB_Colors[config_data["default_foreground_color"]][0],RYB_Colors[config_data["default_foreground_color"]][1],RYB_Colors[config_data["default_foreground_color"]][2])
-            elif input_color == "web_default":
+            elif input_color == "web-default":
                 return term.color_rgb(RYB_Colors[config_data["default_webpage_color"]][0],RYB_Colors[config_data["default_webpage_color"]][1],RYB_Colors[config_data["default_webpage_color"]][2])
+            elif input_color == "page-color":
+                return current_page_foreground
             else:
                 return term.color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
         case "oncolor":
             if input_color == "default":
                 return term.on_color_rgb(RYB_Colors[config_data["default_background_color"]][0],RYB_Colors[config_data["default_background_color"]][1],RYB_Colors[config_data["default_background_color"]][2])
-            elif input_color == "web_default":
+            elif input_color == "web-default":
                 return term.on_color_rgb(RYB_Colors[config_data["default_webpage_background_color"]][0],RYB_Colors[config_data["default_webpage_background_color"]][1],RYB_Colors[config_data["default_webpage_background_color"]][2])
+            elif input_color == "page-color":
+                return current_page_background
             else:
                 return term.on_color_rgb(RYB_Colors[input_color][0],RYB_Colors[input_color][1],RYB_Colors[input_color][2])
 
@@ -329,6 +335,7 @@ def parse_manager(currentpage):
     scroll_offset = 0
     interaction_point = 0
     scroll_points.clear()
+    current_source.clear()
     interaction_points.clear()
     current_parsed_page.clear()
     current_page_foreground = ""
@@ -430,7 +437,9 @@ def parse_display():
     elif viewport_mode == viewport.source:
         total_line = default_colors
         for i in range(len(current_source)):
-            total_line += term.move_xy(3 ,6+i)+ current_source[i] + (" " * ((term.width - 6) - len(current_source[i])))
+            x = i + scroll_offset
+            if i < (term.height-8):
+                total_line += term.move_xy(3 ,6+i)+ current_source[x] + (" " * ((term.width - 6) - len(current_source[x])))
             
         hold_text = (" " * (term.width - 6))
         if len(current_source) < term.height - 8:
@@ -464,22 +473,23 @@ def parse_by_line(textline):
             position = 0
             for i in range(len(modded_text)-x):
                 i+=1
-                if modded_text[x + i] == "]":
-                    position = i+1
-                    key = "{Key_"+str(ModPoint)+"}"
-                    
-                    if ModPoint != 0:
-                        stripped_text = stripped_text.replace(modded_text[x:x + position],key,1)
-                    else:
-                        stripped_text = stripped_text.replace(modded_text[x:x + position],key+"{left_point}",1)
+                if len(modded_text) > x+i:
+                    if modded_text[x + i] == "]":
+                        position = i+1
+                        key = "{Key_"+str(ModPoint)+"}"
                         
-                    y = empty_text.find(modded_text[x:x+position])
-                    empty_text = empty_text.replace(modded_text[x:x+position],"",1)
-                    codes.append([ModPoint,x,modded_text[x:x + position],key,"",{},y])
-                    ModPoint += 1
-                    #return_text += str(modded_text[x:x + position]) +"\n"
-                    #print(default_colors+modded_text[x + i])
-                    break
+                        if ModPoint != 0:
+                            stripped_text = stripped_text.replace(modded_text[x:x + position],key,1)
+                        else:
+                            stripped_text = stripped_text.replace(modded_text[x:x + position],key+"{left_point}",1)
+                            
+                        y = empty_text.find(modded_text[x:x+position])
+                        empty_text = empty_text.replace(modded_text[x:x+position],"",1)
+                        codes.append([ModPoint,x,modded_text[x:x + position],key,"",{},y])
+                        ModPoint += 1
+                        #return_text += str(modded_text[x:x + position]) +"\n"
+                        #print(default_colors+modded_text[x + i])
+                        break
 
 
     if empty_text == "":
@@ -606,14 +616,14 @@ def input_check(value):
         if viewport_mode != viewport.url:
             viewport_mode = viewport.url
     elif value == config_data["key_toggle_source"]:
-        if viewport_mode == viewport.default:
+        if viewport_mode != viewport.source:
             viewport_mode = viewport.source
             parse_display()
         elif viewport_mode == viewport.source:
             viewport_mode = viewport.default
         #print(value)
     elif value == config_data["key_toggle_console"]:
-        if viewport_mode == viewport.default:
+        if viewport_mode != viewport.console:
             viewport_mode = viewport.console
         elif viewport_mode == viewport.console:
             viewport_mode = viewport.default

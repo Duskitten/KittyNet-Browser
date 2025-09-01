@@ -1,29 +1,29 @@
 [background_dark-red-purple foreground_pastel-purple]
 [oncolor_pastel-purple]
 
-[center]Meow     
-[center]     Meow!     
-[center]WELCOME TO KITTYNET!
-[center]V
+[center color_white]Meow     
+[center color_white]     Meow!     
+[center color_white]WELCOME TO KITTYNET!
+[center color_white]V
 
-[center]                    ████      
-[center]                  ██  ██      
-[center]██████████      ██    ██      
-[center]██      ████████████  ██      
-[center]  ██  ██            ████      
-[center]    ████  ██    ██  ██    ██  
-[center]      ██  ██    ██  ██  ██  ██
-[center]      ██            ██  ██    
-[center]      ██            ██  ██    
-[center]        ████████████████      
+[center color_white]                    ████      
+[center color_white]                  ██  ██      
+[center color_white]██████████      ██    ██      
+[center color_white]██      ████████████  ██      
+[center color_white]  ██  ██            ████      
+[center color_white]    ████  ██    ██  ██    ██  
+[center color_white]      ██  ██    ██  ██  ██  ██
+[center color_white]      ██            ██  ██    
+[center color_white]      ██            ██  ██    
+[center color_white]        ████████████████      
 
 [center oncolor_pastel-purple]
 
 [center oncolor_pastel-purple color_white scroll]Hello and welcome to my site!                  
 
 
-[center color_default]KittyNet is a free and open source project
-[center]with the goal of making a whole new internet!
+[center color_white]KittyNet is a free and open source project
+[center color_white]with the goal of making a whole new internet!
 
 [center]To start, press the "F1" key to search in the URL Bar!
 [center]The "F2" key allows for you to view the source of pages!
