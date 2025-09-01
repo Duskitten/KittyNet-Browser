@@ -130,6 +130,10 @@ input_hovered = False
 current_page_foreground = ""
 current_page_background = ""
 
+##Source
+current_source = []
+source_scroll_offset = 0
+
 ##Prebuilt variables
 url_text = "  URL:"+current_url
 kitty_text = ""
@@ -257,7 +261,7 @@ def initial_setup():
     global config_data
     global default_colors
     global link_colors
-    global default_web_colors
+    global default_web_colors   
     global input_colors
     if os.path.exists(script_directory+"/KittyNet.config"):
         with open(script_directory+"/KittyNet.config") as f:
@@ -346,89 +350,105 @@ def parse_display():
     global current_page_foreground
     global current_page_foreground
     global input_colors
+    global viewport_mode
     
+    if viewport_mode == viewport.default:
     
-    selected_color = default_web_colors + current_page_foreground + current_page_background
+        selected_color = default_web_colors + current_page_foreground + current_page_background
 
-    total_line = term.move_xy(3,5)+selected_color
-    parse_offset = 0
-    current_text = ""
-    
-    
-    
-    for x in range(len(current_parsed_page)):
-        x += scroll_offset
-        if x < len(current_parsed_page):
-            current_text =  current_parsed_page[x]["empty_text"]
-            if parse_offset+6 > term.height - 3:
+        total_line = term.move_xy(3,5)+selected_color
+        parse_offset = 0
+        current_text = ""
+        
+        
+        
+        for x in range(len(current_parsed_page)):
+            x += scroll_offset
+            if x < len(current_parsed_page):
+                current_text =  current_parsed_page[x]["empty_text"]
+                if parse_offset+6 > term.height - 3:
+                    break
+            else:
+                #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
                 break
-        else:
-            #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
-            break
 
-        patch_left = ""
-        patch_right = ""
-        match current_parsed_page[x]["alignment"]:
-            case "left":
-                patch_right = " " * ((term.width - 6) - len(current_text))
-            case "right":
-                patch_left = " " * ((term.width - 6) - len(current_text))
-            case "center":
-                patch_right = " " * int(((term.width - 6) - len(current_text))/2)
-                if term.width % 2 != 0 or len(current_text) % 2 != 0:
-                    patch_left = " " * int(((term.width - 6) - len(current_text))/2) + " "
-                else:
-                    patch_left = " " * int(((term.width - 6) - len(current_text))/2)
+            patch_left = ""
+            patch_right = ""
+            match current_parsed_page[x]["alignment"]:
+                case "left":
+                    patch_right = " " * ((term.width - 6) - len(current_text))
+                case "right":
+                    patch_left = " " * ((term.width - 6) - len(current_text))
+                case "center":
+                    patch_right = " " * int(((term.width - 6) - len(current_text))/2)
+                    if term.width % 2 != 0 or len(current_text) % 2 != 0:
+                        patch_left = " " * int(((term.width - 6) - len(current_text))/2) + " "
+                    else:
+                        patch_left = " " * int(((term.width - 6) - len(current_text))/2)
 
-        #print(current_parsed_page[x]["alignment"])
-        total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)+ selected_color
-        
-        for y in range(len(scroll_points)):
-            if scroll_points[y][0]-1 == x:
-                point_a = scroll_points[y][0]-1
-                point_b = scroll_points[y][1]
-                scroll_object = current_parsed_page[point_a]["codes"][point_b]
-            #print(len(current_parsed_page[point_a]["codes"][point_b]))
-                if "scrolled_text" in scroll_object[5]:
-                #print("Hai")
-                    total_line += term.move_xy(len(patch_left)+3+scroll_object[5]["scroll_pos"][0] ,6+parse_offset) + scroll_object[4] +scroll_object[5]["scrolled_text"] +selected_color
-        
-        for y in range(len(interaction_points)):
-            if interaction_points[y][0]-1 == x:
-                point_a = interaction_points[y][0]-1
-                point_b = interaction_points[y][1]
-                link_object = current_parsed_page[point_a]["codes"][point_b]
-                if "link_text" in link_object[5]:
-                    if y == interaction_point:
-                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[2] + link_colors[3] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
-                    else:
-                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[0] + link_colors[1] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
-                elif "input_text" in link_object[5]:
-                    if y == interaction_point:
-                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["input_pos"][0] ,6+parse_offset)+term.underline + input_colors[2] + input_colors[3] + link_object[4] + link_object[5]["input_text"] +link_object[5]["input_typed"] +selected_color+term.no_underline
-                    else:
-                        total_line += term.move_xy(len(patch_left)+3+link_object[5]["input_pos"][0] ,6+parse_offset)+term.underline + input_colors[0] + input_colors[1] + link_object[4] + link_object[5]["input_text"] +link_object[5]["input_typed"] +selected_color+term.no_underline
-                
+            #print(current_parsed_page[x]["alignment"])
+            total_line += term.move_xy(3,6+parse_offset) + current_parsed_page[x]["stripped_text"].replace("{left_point}",patch_left).replace("{right_point}",patch_right)+ selected_color
             
-        parse_offset += 1
-        
-    if parse_offset < (term.height-8):
-        original_offset = parse_offset
-        patch_left = " " * ((term.width - 6))
-        for x in range((term.height-8)-parse_offset):
-            x += original_offset
-            total_line += term.move_xy(3 ,6+x)+ patch_left +selected_color+term.no_underline
-    #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
-    #print(current_parsed_page[x]["stripped_text"])
-    print(total_line)
+            for y in range(len(scroll_points)):
+                if scroll_points[y][0]-1 == x:
+                    point_a = scroll_points[y][0]-1
+                    point_b = scroll_points[y][1]
+                    scroll_object = current_parsed_page[point_a]["codes"][point_b]
+                #print(len(current_parsed_page[point_a]["codes"][point_b]))
+                    if "scrolled_text" in scroll_object[5]:
+                    #print("Hai")
+                        total_line += term.move_xy(len(patch_left)+3+scroll_object[5]["scroll_pos"][0] ,6+parse_offset) + scroll_object[4] +scroll_object[5]["scrolled_text"] +selected_color
+            
+            for y in range(len(interaction_points)):
+                if interaction_points[y][0]-1 == x:
+                    point_a = interaction_points[y][0]-1
+                    point_b = interaction_points[y][1]
+                    link_object = current_parsed_page[point_a]["codes"][point_b]
+                    if "link_text" in link_object[5]:
+                        if y == interaction_point:
+                            total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[2] + link_colors[3] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
+                        else:
+                            total_line += term.move_xy(len(patch_left)+3+link_object[5]["link_pos"][0] ,6+parse_offset)+term.underline + link_colors[0] + link_colors[1] + link_object[4] + link_object[5]["link_text"] +selected_color+term.no_underline
+                    elif "input_text" in link_object[5]:
+                        if y == interaction_point:
+                            total_line += term.move_xy(len(patch_left)+3+link_object[5]["input_pos"][0] ,6+parse_offset)+term.underline + input_colors[2] + input_colors[3] + link_object[4] + link_object[5]["input_text"] +link_object[5]["input_typed"] +selected_color+term.no_underline
+                        else:
+                            total_line += term.move_xy(len(patch_left)+3+link_object[5]["input_pos"][0] ,6+parse_offset)+term.underline + input_colors[0] + input_colors[1] + link_object[4] + link_object[5]["input_text"] +link_object[5]["input_typed"] +selected_color+term.no_underline
+                    
+                
+            parse_offset += 1
+            
+        if parse_offset < (term.height-8):
+            original_offset = parse_offset
+            patch_left = " " * ((term.width - 6))
+            for x in range((term.height-8)-parse_offset):
+                x += original_offset
+                total_line += term.move_xy(3 ,6+x)+ patch_left +selected_color+term.no_underline
+        #total_line += term.move_xy(3,6+parse_offset)+  (" " * ((term.width - 6)))
+        #print(current_parsed_page[x]["stripped_text"])
+        print(total_line)
+    elif viewport_mode == viewport.source:
+        total_line = default_colors
+        for i in range(len(current_source)):
+            total_line += term.move_xy(3 ,6+i)+ current_source[i] + (" " * ((term.width - 6) - len(current_source[i])))
+            
+        hold_text = (" " * (term.width - 6))
+        if len(current_source) < term.height - 8:
+            total_extra = (term.height-8)-len(current_source)
+            for i in range(total_extra):
+                total_line += term.move_xy(3 ,6+len(current_source)+i)+hold_text
+            
+        print(total_line)
 
 
 def parse_by_line(textline):
+    global current_source
     global scroll_points
     global current_parsed_page
     global current_page_foreground
     global current_page_background
     
+    current_source.append(textline)
     return_text = ""
     modded_text = textline
     stripped_text = textline
@@ -588,6 +608,7 @@ def input_check(value):
     elif value == config_data["key_toggle_source"]:
         if viewport_mode == viewport.default:
             viewport_mode = viewport.source
+            parse_display()
         elif viewport_mode == viewport.source:
             viewport_mode = viewport.default
         #print(value)
